@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "768549733541",
+    "firebase_url": "https://tastifaicustomer.firebaseio.com",
+    "project_id": "tastifaicustomer",
+    "storage_bucket": "tastifaicustomer.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:768549733541:android:08072eee09fe4fe7",
+        "android_client_info": {
+          "package_name": "tastifai.customer"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "768549733541-5aifd9q0jvh3d6upk2sj1i41d0n8d46m.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "tastifai.customer",
+            "certificate_hash": "21990557e6b187db1d539ca2b0d7d94508df0213"
+          }
+        },
+        {
+          "client_id": "768549733541-2buapto2p872nubpr3nm35sh1unqg94f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDvw-e06myGVlRrBbC7VsfiawV6ud8hajU"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "768549733541-2buapto2p872nubpr3nm35sh1unqg94f.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

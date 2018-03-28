@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+<item
+
+    android:title="Food"
+    android:id="@+id/food"
+    android:icon="@drawable/tray"
+    app:showAsAction="always|withText" />
+    <item
+        android:title="Friends"
+        android:id="@+id/friends"
+        android:icon="@drawable/friends"
+        app:showAsAction="always|withText" />
+    <item
+        android:title="Fun"
+        android:id="@+id/fun"
+        android:icon="@drawable/fun"
+        app:showAsAction="always|withText" />
+    <item
+        android:title="Me"
+        android:id="@+id/me"
+        android:icon="@mipmap/me"/>
+</menu>

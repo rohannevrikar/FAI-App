@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+
+    android:layout_height="match_parent">
+    <!--<android.support.design.widget.AppBarLayout-->
+        <!--android:id="@+id/app_bar_layout"-->
+        <!--android:layout_marginTop="?attr/actionBarSize"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">-->
+        <!--<android.support.design.widget.TabLayout-->
+            <!--android:id="@+id/tabs"-->
+            <!--style="@style/MyCustomTabLayout"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="?attr/actionBarSize"-->
+            <!--app:tabGravity="fill"-->
+            <!--android:minWidth="350dp" />-->
+        <!--</android.support.design.widget.AppBarLayout>-->
+    <!--<android.support.v4.view.ViewPager-->
+        <!--android:id="@+id/viewpager"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"-->
+        <!--android:layout_below="@+id/app_bar_layout"-->
+        <!--app:layout_behavior="@string/appbar_scrolling_view_behavior" />-->
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/friendsRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/app_bar_layout"
+        android:layout_centerHorizontal="true"
+        tools:listitem="@layout/friends_row"
+        android:layout_alignParentTop="true"
+        android:layout_marginBottom="?attr/actionBarSize"/>
+</RelativeLayout>

@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">FAI</string>
+    <string name="google_maps_api_key">AIzaSyAQrQbmyibnIBNFIwFR_YfYejAVDNjQo28</string>
+    <string name="title_activity_welcome">Home Screen</string>
+    <string name="next">NEXT</string>
+    <string name="skip">SKIP</string>
+    <string name="start">GOT IT</string>
+    <string name="slide_1_title">Find Restaurant</string>
+    <string name="slide_1_desc">Find the best restaurant in your neighborhood</string>
+
+    <string name="slide_2_title">Pick the best</string>
+    <string name="slide_2_desc">Pick the right place using trusted ratings and reviews</string>
+
+    <string name="slide_3_title">Choose your meal</string>
+    <string name="slide_3_desc">Easily find the type of food you are craving</string>
+
+    <string name="slide_4_title">Meal is on the way</string>
+    <string name="slide_4_desc">Get ready and comfortable while our biker brings your meal at your door</string>
+    <string name="navigation_drawer_open">OPEN</string>
+    <string name="navigation_drawer_close">CLOSE</string>
+    <string name="hint"><font size="14">Search restaurant</font></string>
+    <string name="rupee">\u20B9</string>
+    <string name="facebook_app_id">1933254257004459</string>
+    <string name="fb_login_protocol_scheme">fb1933254257004459</string>
+    <string name="title_activity_bottom_nav">BottomNavActivity</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+</resources>

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:paddingRight="5dp"
+        android:paddingBottom="1dp"
+        app:titleTextColor="#171717"
+        app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
+<RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:text="HOME"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:textColor="#808080"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+    <!--<TextView-->
+        <!--android:id="@+id/address"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:maxWidth="250dp"-->
+        <!--android:text="HOME"-->
+        <!--android:textAppearance="@style/TextAppearance.AppCompat.Small"-->
+        <!--android:textColor="#808080"-->
+        <!--android:layout_below="@+id/title"-->
+        <!--android:textStyle="bold" />-->
+    <RelativeLayout
+        android:id="@+id/cartLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginBottom="11dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginRight="20dp">
+
+        <ImageView
+            android:id="@+id/cartImage"
+            android:layout_width="40dp"
+            android:layout_centerInParent="true"
+            android:layout_height="40dp"
+            android:src="@drawable/cart"/>
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="20dp">
+            <!--android:background="@drawable/circle_bg">-->
+            <tastifai.customer.CustomTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/cartQty"
+                android:textSize="14sp"
+                android:text="1"
+                android:textColor="#808080"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"/>
+
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+    <ImageView
+        android:id="@+id/drop_down"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/cartLayout"
+        android:layout_centerVertical="true"
+        android:layout_toEndOf="@+id/title"
+        android:layout_toRightOf="@+id/title"
+        app:srcCompat="@mipmap/down" />
+
+
+</RelativeLayout>
+
+    </android.support.v7.widget.Toolbar>
+
+
+</LinearLayout>

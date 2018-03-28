@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">@android:color/white</color>
+    <color name="toolbarText">#A2A2A2</color>
+    <color name="colorPrimaryDark">#00835b</color>
+    <color name="colorAccent">#FF4081</color>
+    <color name="background">#EEEAE9</color>
+    <color name="white">#ffffff</color>
+    <color name="black">#000000</color>
+
+    <!-- dots inactive colors -->
+    <color name="dot_inactive">#EAEAEA</color>
+    <!-- dots active colors -->
+    <color name="dot_active">#00db98</color>
+
+    <array name="array_dot_active">
+        <item>@color/dot_active</item>
+        <item>@color/dot_active</item>
+        <item>@color/dot_active</item>
+        <item>@color/dot_active</item>
+    </array>
+
+    <array name="array_dot_inactive">
+        <item>@color/dot_inactive</item>
+        <item>@color/dot_inactive</item>
+        <item>@color/dot_inactive</item>
+        <item>@color/dot_inactive</item>
+    </array>
+</resources>

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
+    tools:context="tastifai.customer.MapsActivity">
+
+    <!--<tastifai.customer.CustomTextView-->
+        <!--android:id="@+id/inst_text"-->
+        <!--android:layout_width="200dp"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:text="Hold and drag the marker to set it your accurate location"-->
+
+        <!--android:textAppearance="@style/TextAppearance.AppCompat.Medium" />-->
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/setAddress"
+        android:layout_alignParentBottom="true"
+        android:textColor="@android:color/white"
+        android:background="@color/dot_active"
+        android:text="Confirm Location"/>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:id="@+id/relativeLayout2">
+        <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/map"
+            tools:context=".MapsActivity"
+            android:name="com.google.android.gms.maps.SupportMapFragment">
+        </fragment>
+        <ImageView
+            android:id="@+id/marker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            app:srcCompat="@mipmap/marker" />
+
+    </RelativeLayout>
+
+
+    <ImageView
+        android:id="@+id/currentLocation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="23dp"
+        android:layout_marginRight="23dp"
+        android:layout_marginTop="22dp"
+        app:srcCompat="@mipmap/mylocation"
+        android:layout_alignTop="@+id/map"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
+    <EditText
+        android:id="@+id/flat_number"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/relativeLayout2"
+        android:layout_marginEnd="25dp"
+        android:layout_marginRight="25dp"
+        android:layout_marginTop="11dp"
+        android:layout_toLeftOf="@+id/currentLocation"
+        android:layout_toStartOf="@+id/currentLocation"
+        android:ems="10"
+        android:theme="@style/BaseTheme"
+        android:hint="Flat number"
+        android:inputType="text" />
+
+    <EditText
+        android:id="@+id/street_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/flat_number"
+        android:layout_alignStart="@+id/flat_number"
+        android:layout_below="@+id/flat_number"
+        android:layout_marginTop="11dp"
+        android:ems="10"
+        android:theme="@style/BaseTheme"
+
+        android:inputType="textPersonName"
+        android:hint="Street/Landmark"
+         />
+
+    <EditText
+        android:id="@+id/contact_number"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@+id/street_name"
+        android:layout_alignRight="@+id/street_name"
+        android:layout_below="@+id/street_name"
+        android:layout_marginTop="11dp"
+        android:ems="10"
+        android:hint="Contact Number"
+        android:maxLength="10"
+        android:inputType="phone"
+        android:theme="@style/BaseTheme" />
+
+
+</RelativeLayout>
