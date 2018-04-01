@@ -19,9 +19,11 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -46,6 +48,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static tastifai.customer.FacebookLoginActivity.userModel;
+
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
     private static final String TAG = "MapsActivity";
     private static final int ERROR_DIALOG_REQUEST = 101;
@@ -62,6 +66,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private ImageView currentLocationImage;
     private String subLocality;
     private String fullAddress;
+    private EditText flatNumber;
+    private EditText streetName;
+    private EditText phoneNumber;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +78,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         locationSharedPref = getSharedPreferences(locationPref, Context.MODE_PRIVATE);
         PlaceInfo placeInfo = null;
         init();
+        Toast.makeText(MapsActivity.this, "Drag the map to the delivery location", Toast.LENGTH_SHORT).show();
 
 
         if (isServicesOK()) {
@@ -83,7 +92,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        Toast.makeText(this, "Map is ready", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "Map is ready", Toast.LENGTH_SHORT).show();
         mMap = googleMap;
         Intent intent = getIntent();
 
@@ -92,9 +101,30 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Bundle bundle = getIntent().getBundleExtra("place");
                 if (bundle != null) {
                     LatLng latlng = (LatLng) bundle.getParcelable("latlng");
+                    userModel.setLatitude(latlng.latitude);
+                    userModel.setLongitude(latlng.longitude);
                     String address = (String) bundle.getString("address");
                     Log.d(TAG, "onCreate: " + address + latlng.latitude);
                     moveCamera(latlng, 15f);
+                    mMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
+
+                        @Override
+                        public void onMapLoaded() {
+                            Log.d(TAG, "onMapLoaded: ");
+                            mMap.setOnCameraIdleListener(new GoogleMap.OnCameraIdleListener() {
+                                @Override
+                                public void onCameraIdle() {
+                                    finalLocation = mMap.getCameraPosition().target;
+                                    Log.d(TAG, "onCameraIdle: " + finalLocation.latitude + " " + finalLocation.longitude);
+//                  Location addressLocation = new Location(LocationManager.GPS_PROVIDER);
+//                  addressLocation.setLatitude(finalLocation.latitude);
+//                  addressLocation.setLongitude(finalLocation.longitude);
+                                    getAddress(finalLocation);
+                                }
+                            });
+                            // mMap.setMyLocationEnabled(true);
+                        }
+                    });
                 } else
                     getDeviceLocation();
             } else
@@ -105,24 +135,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 return;
             }
-            mMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
-                @Override
-                public void onMapLoaded() {
-                    mMap.setOnCameraIdleListener(new GoogleMap.OnCameraIdleListener() {
-                        @Override
-                        public void onCameraIdle() {
-                            finalLocation = mMap.getCameraPosition().target;
-                            Log.d(TAG, "onCameraIdle: " + finalLocation.latitude + " " + finalLocation.longitude);
-//                  Location addressLocation = new Location(LocationManager.GPS_PROVIDER);
-//                  addressLocation.setLatitude(finalLocation.latitude);
-//                  addressLocation.setLongitude(finalLocation.longitude);
-                            getAddress(finalLocation);
-                            Toast.makeText(MapsActivity.this, "New Lat : " + finalLocation.latitude + " New Lng : " + finalLocation.longitude, Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                    // mMap.setMyLocationEnabled(true);
-                }
-            });
+
         }
 
     }
@@ -148,15 +161,38 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         setAddress = findViewById(R.id.setAddress);
         setAddress.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/GT-Walsheim.ttf"));
         setAddress.setVisibility(View.GONE);
+        flatNumber = findViewById(R.id.flat_number);
+        streetName = findViewById(R.id.street_name);
+        phoneNumber = findViewById(R.id.contact_number);
+
         setAddress.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                SharedPreferences.Editor editor = locationSharedPref.edit();
-                editor.putString("subLocality",subLocality);
-                editor.putString("address", fullAddress);
-                editor.apply();
-                Intent intent = new Intent(MapsActivity.this, MainActivity.class);
-                startActivity(intent);
+                if(TextUtils.isEmpty(flatNumber.getText()) || TextUtils.isEmpty(streetName.getText()) || TextUtils.isEmpty(phoneNumber.getText())){
+                    if(TextUtils.isEmpty(flatNumber.getText())){
+                        flatNumber.setError("Please enter flat number");
+                    }
+                    if(TextUtils.isEmpty(streetName.getText())){
+                        streetName.setError("Please enter street name or landmark");
+                    }
+                    if(TextUtils.isEmpty(phoneNumber.getText())){
+                        phoneNumber.setError("Please enter phone number");
+                    }
+                }else if(phoneNumber.getText().toString().trim().length() <10){
+                    phoneNumber.setError("Phone number should be of 10 characters");
+
+                } else{
+                    SharedPreferences.Editor editor = locationSharedPref.edit();
+                    editor.putString("subLocality",subLocality);
+                    editor.putString("address", fullAddress);
+                    editor.putString("latitude", String.valueOf(userModel.getLatitude()));
+                    editor.putString("longitude", String.valueOf(userModel.getLongitude()));
+                    editor.apply();
+                    Intent intent = new Intent(MapsActivity.this, MainActivity.class);
+                    startActivity(intent);
+                }
+
+
             }
         });
         currentLocationImage = findViewById(R.id.currentLocation);
@@ -206,13 +242,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         try{
             if(mLocationPermissionsGranted){
-                Task location = mFusedLocationProviderClient.getLastLocation();
+                final Task location = mFusedLocationProviderClient.getLastLocation();
                 location.addOnCompleteListener(new OnCompleteListener() {
                     @Override
                     public void onComplete(@NonNull Task task) {
                         if(task.isSuccessful()){
                             Location currentLocation = (Location)task.getResult();
                             Log.d(TAG, "onComplete: " + currentLocation.getLongitude() + " " + currentLocation.getLatitude());
+                            userModel.setLatitude(currentLocation.getLatitude());
+                            userModel.setLongitude(currentLocation.getLongitude());
                             moveCamera(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), 15f);
                             finalLocation = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
                             getAddress(finalLocation);

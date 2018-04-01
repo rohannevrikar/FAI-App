@@ -13,6 +13,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import java.util.ArrayList;
 
+import static tastifai.customer.MainActivity.restaurantId;
+
 /**
  * Created by Rohan Nevrikar on 18-02-2018.
  */
@@ -49,6 +51,7 @@ public class SearchRestaurantAdapter extends RecyclerView.Adapter<SearchRestaura
             @Override
             public void onClick(View view) {
                 restaurantModel = restaurantModelArrayList.get(position);
+                //restaurantId = restaurantModel.getId();
 //                ((MainActivity)context).findViewById(R.id.frame_layout).setVisibility(View.GONE);
 //                ((MainActivity)context).findViewById(R.id.restaurantFragment).setVisibility(View.VISIBLE);
                 ((MainActivity)context).getFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.frame_layout, new MenuFragment()).commit();

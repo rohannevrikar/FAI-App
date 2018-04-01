@@ -32,6 +32,7 @@ public class FacebookLoginActivity extends AppCompatActivity {
     String profilePicUrl;
     private SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
+    public static UserModel userModel = new UserModel();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,7 +67,7 @@ public class FacebookLoginActivity extends AppCompatActivity {
         loginButton = findViewById(R.id.login_button);
         callbackManager = CallbackManager.Factory.create();
         loginButton.setReadPermissions(Arrays.asList(
-                "public_profile", "email", "user_birthday", "user_friends"));
+                "public_profile", "email", "user_friends"));
         loginButton.registerCallback(callbackManager,
                 new FacebookCallback<LoginResult>() {
                     @Override
@@ -88,11 +89,14 @@ public class FacebookLoginActivity extends AppCompatActivity {
                                                 Log.d("FacebookActivity", "onCompleted: " + profilePicUrl);
                                             }
                                             String email = object.getString("email");
-                                            String birthday = object.getString("birthday");
+                                            //String birthday = object.getString("birthday");
                                             String first_name = object.getString("first_name");
                                             String last_name = object.getString("last_name");
                                             String id = object.getString("id");
                                             String friends = object.getString("friends");
+                                            userModel.setFirst_name(first_name);
+                                            userModel.setLast_name(last_name);
+                                            userModel.setFbUserId(id);
                                             Log.d("FacebookLogin", "onCompleted: " + friends);
                                             editor = sharedPreferences.edit();
                                             editor.putString("fbUserId", id);
@@ -111,14 +115,15 @@ public class FacebookLoginActivity extends AppCompatActivity {
 //                                            intent.putExtra("picture", profilePicUrl);
 
                                             // 01/31/1980 format
-
+                                            final Intent intent = new Intent(FacebookLoginActivity.this, MapsActivity.class);
+                                            startActivity(intent);
                                         } catch (JSONException e) {
                                             e.printStackTrace();
                                         }
                                     }
                                 });
                         Bundle parameters = new Bundle();
-                        parameters.putString("fields", "id,first_name, last_name, email,gender,birthday,friends");
+                        parameters.putString("fields", "id,first_name, last_name, email,gender,friends");
                         request.setParameters(parameters);
                         request.executeAsync();
 
@@ -126,6 +131,8 @@ public class FacebookLoginActivity extends AppCompatActivity {
                     }
                     @Override
                     public void onCancel() {
+                        Intent intent = new Intent(FacebookLoginActivity.this, FacebookLoginActivity.class);
+                        startActivity(intent);
                         // App code
                     }
 
@@ -143,8 +150,7 @@ public class FacebookLoginActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         callbackManager.onActivityResult(requestCode, resultCode, data);
-        final Intent intent = new Intent(FacebookLoginActivity.this, MapsActivity.class);
-        startActivity(intent);
+
 
     }
 

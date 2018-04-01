@@ -1,5 +1,7 @@
 package tastifai.customer;
 
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -24,7 +26,20 @@ class FacebookAsyncTask extends AsyncTask<String, Object, Bitmap> {
     Bitmap fb_img = null;
     public AsyncResponse delegate = null;
     private static final String TAG = "FacebookAsyncTask";
+    ProgressDialog progressDialog;
+    Context context;
+    public FacebookAsyncTask(Context context){
+        this.context = context;
 
+    }
+
+    @Override
+    protected void onPreExecute() {
+        super.onPreExecute();
+        progressDialog = new ProgressDialog(context);
+        progressDialog.setMessage("Loading...");
+        progressDialog.show();
+    }
 
     @Override
     protected Bitmap doInBackground(String... strings) {
@@ -61,6 +76,9 @@ class FacebookAsyncTask extends AsyncTask<String, Object, Bitmap> {
 
     @Override
     protected void onPostExecute(Bitmap bitmap) {
+
+        if(progressDialog != null)
+            progressDialog.dismiss();
         delegate.processFinish(bitmap);
     }
 }

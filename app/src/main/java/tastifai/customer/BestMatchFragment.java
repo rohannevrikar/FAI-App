@@ -40,7 +40,7 @@ public class BestMatchFragment extends Fragment implements AsyncResponse {
             friendList = ((MainActivity) getActivity()).friendsArrayFromFacebook();
 
             for (int i = 0; i < friendList.length(); i++) {
-                FacebookAsyncTask asyncTask = new FacebookAsyncTask();
+                FacebookAsyncTask asyncTask = new FacebookAsyncTask(getActivity());
                 name = friendList.getJSONObject(i).getString("name");
                 asyncTask.delegate = (AsyncResponse) this;
                 asyncTask.execute("https://graph.facebook.com/" + friendList.getJSONObject(i).getString("id") + "/picture?type=large");

@@ -7,14 +7,14 @@
     android:layout_height="wrap_content">
 
     <android.support.v7.widget.CardView
+        android:id="@+id/categoryCard"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:elevation="10dp"
-        app:cardUseCompatPadding="true">
+        android:layout_height="wrap_content">
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:padding="15dp">
 
 
             <tastifai.customer.CustomTextView
@@ -24,12 +24,10 @@
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
                 android:layout_alignParentTop="true"
-                android:layout_marginLeft="19dp"
-                android:layout_marginStart="19dp"
-                android:layout_marginTop="37dp"
+
                 android:text="TextView"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                android:textColor="#555555"
+                android:textColor="#808080"
                 android:textSize="20sp" />
 
             <android.support.v7.widget.RecyclerView
@@ -40,10 +38,52 @@
                 android:layout_alignStart="@+id/category"
                 android:layout_below="@+id/category"
                 android:layout_marginBottom="20dp"
-                android:layout_marginTop="30dp" />
+                android:layout_marginTop="30dp"/>
+
+            <ImageView
+                android:id="@+id/down"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_above="@+id/itemRecyclerView"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                app:srcCompat="@mipmap/down" />
+            <ImageView
+                android:id="@+id/up"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/down"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                app:srcCompat="@mipmap/up" />
+
+            <!--<ImageView-->
+                <!--android:id="@+id/down"-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_alignParentTop="true"-->
+                <!--android:layout_marginLeft="108dp"-->
+                <!--android:layout_marginStart="108dp"-->
+                <!--android:layout_marginTop="-15dp"-->
+                <!--android:layout_toEndOf="@+id/category"-->
+                <!--android:layout_toRightOf="@+id/category"-->
+                <!--app:srcCompat="@mipmap/down" />-->
+            <!--<ImageView-->
+                <!--android:id="@+id/up"-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_alignParentTop="true"-->
+                <!--android:layout_marginLeft="108dp"-->
+                <!--android:layout_marginStart="108dp"-->
+                <!--android:visibility="gone"-->
+                <!--android:layout_marginTop="-15dp"-->
+                <!--android:layout_toEndOf="@+id/category"-->
+                <!--android:layout_toRightOf="@+id/category"-->
+                <!--app:srcCompat="@mipmap/up" />-->
+
+
         </RelativeLayout>
     </android.support.v7.widget.CardView>
-
 
 
 </FrameLayout>

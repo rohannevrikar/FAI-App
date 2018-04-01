@@ -7,6 +7,8 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
@@ -53,11 +55,17 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
 import java.util.UUID;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import static tastifai.customer.FacebookLoginActivity.userModel;
 import static tastifai.customer.MapsActivity.locationPref;
 
 
@@ -71,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private TextView toolbarAddress;
     private ImageView dropDown;
     private TextView cartQty;
-    private ImageView profilePic;
+    public ImageView profilePic;
     private ImageView locationImage;
     private RelativeLayout cartLayout;
     private TextView welcomeText;
@@ -90,19 +98,24 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public static ArrayList<MenuItemModel> cartItems = new ArrayList<>();
     public static ArrayList<WebRestaurantModel> restaurantModelArrayList = new ArrayList<>();
     private SharedPreferences cartSharedPref;
+    public static Bitmap pictureBitmap;
     String id;
+    public static String restaurantId;
     URL fb_url = null;//small | noraml | large
 
     HttpsURLConnection conn1 = null;
     private SharedPreferences locationSharedPreferences;
 
-    FacebookAsyncTask asyncTask = new FacebookAsyncTask();
+    FacebookAsyncTask asyncTask = new FacebookAsyncTask(MainActivity.this);
     private String subLocality;
     private String address;
     private  static final String TAG = "MainActivity";
     private SharedPreferences sharedPreferences;
     ArrayList<WebRestaurantModel> webRestaurantList;
     String url = "http://foodspecwebapi.us-east-1.elasticbeanstalk.com/api/FoodSpec/GetAllRestaurant";
+    public static String guid;
+    private double userLat;
+    private double userLng;
 
 
 
@@ -113,13 +126,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         locationSharedPreferences = getSharedPreferences(locationPref, Context.MODE_PRIVATE);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         restaurantModelArrayList.clear();
+
         webRestaurantList = new ArrayList<>();
         if(locationSharedPreferences!=null){
             subLocality = locationSharedPreferences.getString("subLocality",null);
             address = locationSharedPreferences.getString("address", null);
+            userLat = Double.parseDouble(locationSharedPreferences.getString("latitude", ""));
+            userLng = Double.parseDouble(locationSharedPreferences.getString("longitude", ""));
+
             Toast.makeText(this, "Showing results from " + subLocality, Toast.LENGTH_LONG).show();
         }
         cartSharedPref = getSharedPreferences("Cart", Context.MODE_PRIVATE);
+//        if(cartItems.size() == 0){
+//            Log.d(TAG, "onCreate: clearing cartsharedpred");
+//            cartSharedPref.edit().clear().apply();
+//        }
         if(cartSharedPref.getString("cart", null) != null){
             Gson gson = new Gson();
             String json = cartSharedPref.getString("cart", null);
@@ -130,6 +151,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
         //getApplicationContext().deleteDatabase("restaurants.db");
         //databaseHelper = new DatabaseHelper(this);
+        guid = UUID.randomUUID().toString();
         Log.d(TAG, "onCreate: " + UUID.randomUUID().toString());
         BottomNavigationView bottomNavigationView = (BottomNavigationView)findViewById(R.id.bottom_navigation);
         BottomNavigationViewHelper.disableShiftMode(bottomNavigationView);
@@ -149,8 +171,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         sharedPreferences = getApplicationContext().getSharedPreferences("FacebookPref", MODE_PRIVATE);
         if(sharedPreferences!=null){
             try {
-                Toast.makeText(MainActivity.this, sharedPreferences.getString("friends", null),Toast.LENGTH_LONG).show();
-                JSONObject object = new JSONObject(sharedPreferences.getString("friends", null));
+                Toast.makeText(MainActivity.this, sharedPreferences.getString("friends", ""),Toast.LENGTH_SHORT).show();
+                JSONObject object = new JSONObject(sharedPreferences.getString("friends", ""));
                 friendsArray = object.getJSONArray("data");
                 Log.d(TAG, "onCreate: " + friendsArray);
             } catch (JSONException e) {
@@ -161,8 +183,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             //profilePic.setProfileId(id);
         }
         Log.d("MainActivity", "onCreate: " + AccessToken.getCurrentAccessToken().toString());
-        asyncTask.delegate = (AsyncResponse) this;
-            asyncTask.execute("https://graph.facebook.com/" + id + "/picture?type=large");
+        if(isConnectedToInternet()){
+
+        }else{
+            int trakcer = 0;
+            Toast.makeText(MainActivity.this, "No internet connection, trying to connect...", Toast.LENGTH_SHORT).show();
+
+            while(trakcer == 0){
+                asyncTask.delegate = (AsyncResponse) this;
+                asyncTask.execute("https://graph.facebook.com/" + id + "/picture?type=large");
+                if(isConnectedToInternet())
+                    trakcer = 1;
+            }
+
+        }
+
 
 //        GraphRequest request = GraphRequest.newGraphPathRequest(
 //                AccessToken.getCurrentAccessToken(),
@@ -220,7 +255,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         view.setNavigationItemSelectedListener(MainActivity.this);
         cartLayout = toolbar.findViewById(R.id.cartLayout);
         cartQty = cartLayout.findViewById(R.id.cartQty);
-        distFrom();
         if(cartSharedPref != null){
             if(cartItems.size() == 0){
                 cartLayout.setVisibility(View.GONE);
@@ -253,11 +287,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                                 break;
 
-                            case R.id.fun:
-                                Log.d("SearchRestaurantFrag", "onNavigationItemSelected: fun clicked");
-                                getFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.frame_layout, new FunFragment()).commit();
-
-                                break;
+//                            case R.id.fun:
+//                                Log.d("SearchRestaurantFrag", "onNavigationItemSelected: fun clicked");
+//                                getFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.frame_layout, new FunFragment()).commit();
+//
+//                                break;
 
                             case R.id.friends:
                                 Log.d("SearchRestaurantFrag", "onNavigationItemSelected: Friends clicked");
@@ -286,9 +320,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void onBackPressed() {
        Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
-    }
-    public ImageView getProfilePic(){
-        return profilePic;
     }
     private void previousFragment() {
         super.onBackPressed();
@@ -325,6 +356,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         viewPager.setAdapter(adapter);
         //viewPager.setOffscreenPageLimit(3);
     }
+    public boolean isConnectedToInternet(){
+        ConnectivityManager connectivity = (ConnectivityManager)getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivity != null)
+        {
+            NetworkInfo[] info = connectivity.getAllNetworkInfo();
+            if (info != null)
+                for (int i = 0; i < info.length; i++)
+                    if (info[i].getState() == NetworkInfo.State.CONNECTED)
+                    {
+                        return true;
+                    }
+
+        }
+        return false;
+    }
 //        public void updateViewPager() {
 //        adapter.clearList();
 //
@@ -358,7 +404,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        if(item.getItemId() == R.id.logout){
+        if(item.getItemId() == R.id.logout) {
             if (AccessToken.getCurrentAccessToken() == null) {
                 return true; // already logged out
             }
@@ -375,14 +421,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                 }
             }).executeAsync();
-        } else if(item.getItemId() == R.id.myaccount){
-            Toast.makeText(MainActivity.this, "Clicked", Toast.LENGTH_SHORT).show();
-            findViewById(R.id.home).setVisibility(View.GONE);
-            title.setText("My Account");
-            findViewById(R.id.restaurantFragment).setVisibility(View.VISIBLE);
-            getFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.restaurantFragment, new MyAccount()).commit();
-
         }
+//        } else if(item.getItemId() == R.id.myaccount){
+//            Toast.makeText(MainActivity.this, "Clicked", Toast.LENGTH_SHORT).show();
+//            findViewById(R.id.home).setVisibility(View.GONE);
+//            title.setText("My Account");
+//            findViewById(R.id.restaurantFragment).setVisibility(View.VISIBLE);
+//            getFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.restaurantFragment, new MyAccount()).commit();
+//
+//        }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
@@ -395,6 +442,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void processFinish(Bitmap output) {
 
         if(output!=null){
+            pictureBitmap = output;
             profilePic.setImageBitmap(output);
 
         }
@@ -420,25 +468,59 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 //    private double convertToRadian(double degree){
 //        return degree * (Math.PI/180);
 //    }
+    public ImageView getImage(){
+        return profilePic;
+    }
 @Override
 protected void onSaveInstanceState(Bundle outState) {
     super.onSaveInstanceState(outState);
-}public void distFrom() {
-        double lat1 = 23.034393; //CIIE
-        double lng1 = 72.532507; //CIIE
-        double lat2 = 23.019207; //Satyam
-        double lng2 = 72.514001; //Satyam
+}public double findDistance(double restaurantLat, double restaurantLng, double userLat, double userLng) {
+        Log.d(TAG, "findDistance: " + restaurantLat + " " + restaurantLng + " " + userLat + " " + userLng);
+//        double lat1 = 23.034393; //CIIE
+//        double lng1 = 72.532507; //CIIE
+//        double lat2 = 23.019207; //Satyam
+//        double lng2 = 72.514001; //Satyam
         double earthRadius = 6371; // miles (or 6371.0 kilometers)
-        double dLat = Math.toRadians(lat2-lat1);
-        double dLng = Math.toRadians(lng2-lng1);
+        double dLat = Math.toRadians(userLat-restaurantLat);
+        double dLng = Math.toRadians(userLng-restaurantLng);
         double sindLat = Math.sin(dLat / 2);
         double sindLng = Math.sin(dLng / 2);
         double a = Math.pow(sindLat, 2) + Math.pow(sindLng, 2)
-                * Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2));
+                * Math.cos(Math.toRadians(restaurantLat)) * Math.cos(Math.toRadians(userLat));
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        double dist = earthRadius * c;
-        Log.d(TAG, "distFrom: " + dist);
+        double distance = earthRadius * c;
+        Log.d(TAG, "distFrom: " + distance);
+        return distance;
 
+    }
+    public int calculateDistanceInKilometer(double userLat, double userLng,
+                                            double venueLat, double venueLng) {
+
+        double latDistance = Math.toRadians(userLat - venueLat);
+        double lngDistance = Math.toRadians(userLng - venueLng);
+
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(userLat)) * Math.cos(Math.toRadians(venueLat))
+                * Math.sin(lngDistance / 2) * Math.sin(lngDistance / 2);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        Log.d(TAG, "calculateDistanceInKilometer: " +(int) (Math.round(6371 * c)));
+
+        return (int) (Math.round(6371 * c));
+    }
+    public String convertDateTime(String dateTime){
+        String start_dt = dateTime.replace("T", " ");
+
+        DateFormat parser = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        Date date = null;
+        try {
+            date = (Date) parser.parse(start_dt);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        DateFormat formatter = new SimpleDateFormat("dd MMM, yyyy hh:mm a");
+        return formatter.format(date);
     }
     private class APIAsyncTask extends AsyncTask<Object,String,String> {
         StringBuilder builder = new StringBuilder();
@@ -454,8 +536,14 @@ protected void onSaveInstanceState(Bundle outState) {
                         WebRestaurantModel model = new WebRestaurantModel();
                         model.setId(obj.getString("RestaurantID"));
                         model.setRestaurantName(obj.getString("RestaurantName"));
+                        if(!obj.getString("Latitude").equals("null")){
+                            model.setLatitude(Double.parseDouble(obj.getString("Latitude")));
+                            model.setLongitude(Double.parseDouble(obj.getString("Longitude")));
+                        }
+
+
                         restaurantModelArrayList.add(model);
-                        getFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.frame_layout, new FoodFragment()).commitAllowingStateLoss();
+
 
 //                        databaseHelper.insertRestaurantData(Integer.parseInt(obj.getString("RestaurantID")), obj.getString("RestaurantName"));
 //                            Log.d(TAG, "onPostExecute: inserting " + i);
@@ -465,10 +553,30 @@ protected void onSaveInstanceState(Bundle outState) {
 //                            Toast.makeText(MainActivity.this, "data not inserted", Toast.LENGTH_SHORT).show();
 
                     }
+                    for(WebRestaurantModel model : restaurantModelArrayList){
+                        model.setDistance(findDistance(model.getLatitude(),model.getLongitude(),userLat, userLng));
+
+                    }
+                    Collections.sort(restaurantModelArrayList);
+                    for(WebRestaurantModel model : restaurantModelArrayList){
+                        Log.d(TAG, "onPostExecute: " + model.getRestaurantName() + " " + model.getDistance());
+
+                    }
+
+                    getFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.frame_layout, new FoodFragment()).commitAllowingStateLoss();
+
 
                 }
 
             } catch (JSONException e) {
+                int tracker = 0;
+
+                while(tracker == 0){
+                    Toast.makeText(MainActivity.this, "No internet connection, trying to connect...", Toast.LENGTH_SHORT).show();
+                    new APIAsyncTask().execute(url);
+                    if(isConnectedToInternet())
+                        tracker = 1;
+                }
                 e.printStackTrace();
             }
         }

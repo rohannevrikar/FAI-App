@@ -7,12 +7,12 @@
         <item
             android:id="@+id/myorder"
             android:title="My Order" />
+        <!--<item-->
+            <!--android:id="@+id/myaccount"-->
+            <!--android:title="My Account" />-->
         <item
-            android:id="@+id/myaccount"
-            android:title="My Account" />
-        <item
-            android:id="@+id/notifications"
-            android:title="Notifications" />
+            android:id="@+id/offers"
+            android:title="Offers" />
         <item
             android:id="@+id/settings"
             android:title="Settings" />

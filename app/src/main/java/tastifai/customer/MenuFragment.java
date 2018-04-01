@@ -1,6 +1,7 @@
 package tastifai.customer;
 
 import android.app.Fragment;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -53,7 +54,7 @@ public class MenuFragment extends Fragment {
     private RecyclerView categoryRecyclerView;
     private ArrayList<CategoryModel> categoryModelArrayList = new ArrayList<>();
     private RelativeLayout cartLayout;
-    private HorizontalScrollMenuView menu;
+    private HorizontalScrollMenuView horizontalScrollMenuView;
     private Toolbar toolbar;
     private TextView viewCart;
     private TextView name;
@@ -63,6 +64,7 @@ public class MenuFragment extends Fragment {
     public static Set<String> categories;
     RecyclerView.SmoothScroller smoothScroller;
     LinearLayoutManager layoutManager;
+    String url;
 
     @Nullable
     @Override
@@ -72,22 +74,22 @@ public class MenuFragment extends Fragment {
 //        scrollView.setNestedScrollingEnabled(false);
         name = view.findViewById(R.id.name);
         name.setText(restaurantModel.getRestaurantName());
-        menu = view.findViewById(R.id.horizontalMenu);
-        menuImage = view.findViewById(R.id.menu);
-
-
-        menuImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-//                Intent intent = new Intent(getActivity(), MenuPopUp.class);
-//                startActivity(intent);
-                startActivityForResult(new Intent(getActivity(), MenuPopUp.class), 999);
-
-            }
-        });
+        horizontalScrollMenuView = view.findViewById(R.id.horizontalMenu);
+//        menuImage = view.findViewById(R.id.menu);
+//
+//
+//        menuImage.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+////                Intent intent = new Intent(getActivity(), MenuPopUp.class);
+////                startActivity(intent);
+//                startActivityForResult(new Intent(getActivity(), MenuPopUp.class), 999);
+//
+//            }
+//        });
 
         Log.d(TAG, "onCreateView: " + restaurantModel.getId());
-        String url = "http://foodspecwebapi.us-east-1.elasticbeanstalk.com/api/FoodSpec/GetRestaurantMenuItems/" + restaurantModel.getId();
+        url = "http://foodspecwebapi.us-east-1.elasticbeanstalk.com/api/FoodSpec/GetRestaurantMenuItems/" + restaurantModel.getId();
         final  AppCompatActivity act = (AppCompatActivity) getActivity();
         ((MainActivity)getActivity()).getSupportActionBar();
         ((MainActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -98,7 +100,7 @@ public class MenuFragment extends Fragment {
         categoryRecyclerView.setNestedScrollingEnabled(false);
 
 
-        //initMenu();
+        initMenu();
         return view;
     }
 
@@ -121,16 +123,26 @@ public class MenuFragment extends Fragment {
         }
     }
 
-    //    private void initMenu(){
-//        menu.addItem(SearchRestaurantAdapter.restaurantModel.getOpenTime() + " - " + SearchRestaurantAdapter.restaurantModel.getCloseTime(), R.drawable.ic_clock);
-//        menu.addItem("1.5km", R.drawable.ic_action_name);
-//        menu.addItem("DELIVERY", R.drawable.ic_delivery);
-//    }
+        private void initMenu(){
+        horizontalScrollMenuView.addItem("10am - 11pm", R.drawable.ic_clock);
+        horizontalScrollMenuView.addItem("1.5km", R.drawable.ic_action_name);
+        horizontalScrollMenuView.addItem("DELIVERY", R.drawable.ic_delivery);
+    }
 private class APIAsyncTask extends AsyncTask<Object,String,String> {
     StringBuilder builder = new StringBuilder();
+    private ProgressDialog progressDialog;
+
+    @Override
+    protected void onPreExecute() {
+        super.onPreExecute();
+        progressDialog = new ProgressDialog(getActivity());
+        progressDialog.setMessage("Loading...");
+        progressDialog.show();
+    }
 
     @Override
     protected void onPostExecute(String s) {
+        progressDialog.dismiss();
         try {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
                 JSONArray array = new JSONArray(s);
@@ -154,6 +166,9 @@ private class APIAsyncTask extends AsyncTask<Object,String,String> {
                             MenuItemModel menuItem = new MenuItemModel();
                             menuItem.setItemName(obj.getString("ItemName"));
                             menuItem.setPrice(obj.getString("ItemPrice"));
+                            menuItem.setItemETA(obj.getInt("ItemETA"));
+                            menuItem.setItemId(obj.getString("ItemId"));
+                            menuItem.setRestaurantId(obj.getString("RestaurantID"));
                             menuItem.setQuantity(1);
                             menuItem.setClicked(false);
                             menuList.add(menuItem);
@@ -176,6 +191,14 @@ private class APIAsyncTask extends AsyncTask<Object,String,String> {
             }
 
         } catch (JSONException e) {
+            int tracker = 0;
+
+            while(tracker == 0){
+                Toast.makeText(getActivity(), "No internet connection, trying to connect...", Toast.LENGTH_SHORT).show();
+                new APIAsyncTask().execute(url);
+                if(((MainActivity)getActivity()).isConnectedToInternet())
+                    tracker = 1;
+            }
             e.printStackTrace();
         }
     }

@@ -12,10 +12,10 @@
     <string name="slide_2_desc">Pick the right place using trusted ratings and reviews</string>
 
     <string name="slide_3_title">Choose your meal</string>
-    <string name="slide_3_desc">Easily find the type of food you are craving</string>
+    <string name="slide_3_desc">Easily find the type of food you are craving for</string>
 
     <string name="slide_4_title">Meal is on the way</string>
-    <string name="slide_4_desc">Get ready and comfortable while our biker brings your meal at your door</string>
+    <string name="slide_4_desc">Sit back and relax while the food is being delivered</string>
     <string name="navigation_drawer_open">OPEN</string>
     <string name="navigation_drawer_close">CLOSE</string>
     <string name="hint"><font size="14">Search restaurant</font></string>

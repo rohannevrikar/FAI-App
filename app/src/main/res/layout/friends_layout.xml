@@ -2,9 +2,29 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
+    android:layout_marginTop="?attr/actionBarSize"
     xmlns:app="http://schemas.android.com/apk/res-auto"
 
     android:layout_height="match_parent">
+
+    <tastifai.customer.CustomTextView
+        android:id="@+id/heading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="20dp"
+        android:textAlignment="center"
+        android:text="Your facebook friends who are using FAI"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+    <tastifai.customer.CustomTextView
+        android:id="@+id/noFriendsMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="gone"
+        android:textSize="18sp"
+        android:text="Sorry, none of your friends are using FAI "/>
     <!--<android.support.design.widget.AppBarLayout-->
         <!--android:id="@+id/app_bar_layout"-->
         <!--android:layout_marginTop="?attr/actionBarSize"-->
@@ -29,9 +49,8 @@
         android:id="@+id/friendsRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/app_bar_layout"
+        android:layout_below="@+id/heading"
         android:layout_centerHorizontal="true"
         tools:listitem="@layout/friends_row"
-        android:layout_alignParentTop="true"
         android:layout_marginBottom="?attr/actionBarSize"/>
 </RelativeLayout>

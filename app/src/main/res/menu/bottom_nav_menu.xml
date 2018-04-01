@@ -12,11 +12,11 @@
         android:id="@+id/friends"
         android:icon="@drawable/friends"
         app:showAsAction="always|withText" />
-    <item
-        android:title="Fun"
-        android:id="@+id/fun"
-        android:icon="@drawable/fun"
-        app:showAsAction="always|withText" />
+    <!--<item-->
+        <!--android:title="Fun"-->
+        <!--android:id="@+id/fun"-->
+        <!--android:icon="@drawable/fun"-->
+        <!--app:showAsAction="always|withText" />-->
     <item
         android:title="Me"
         android:id="@+id/me"

@@ -10,6 +10,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.util.ArrayList;
+
 /**
  * Created by Rohan Nevrikar on 14-03-2018.
  */
@@ -22,12 +24,18 @@ public class MeFragment extends Fragment {
     private AccountFragment accountFragment;
     private JourneyFragment journeyFragment;
     private static final String TAG = "MeFragment";
+    public static ArrayList<String> settingsOptions = new ArrayList<>();
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.include_viewpager,container,false);
         viewPager = view.findViewById(R.id.viewpager);
+        settingsOptions.add("Edit Bio");
+        settingsOptions.add("Manage Addresses");
+        settingsOptions.add("Referrals");
+        settingsOptions.add("Offers");
+
         setupViewPager(viewPager);
         initAction();
 
@@ -42,7 +50,7 @@ public class MeFragment extends Fragment {
         journeyFragment = new JourneyFragment();
         accountFragment = new AccountFragment();
 
-        adapter.addFragment(cartFragment,  "Cart");
+        //adapter.addFragment(cartFragment,  "Cart");
         adapter.addFragment(journeyFragment, "Journey");
         adapter.addFragment(accountFragment, "Account");
 

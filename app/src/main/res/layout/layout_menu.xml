@@ -25,6 +25,7 @@
             android:layout_alignParentEnd="true"/>
 
 
+
         <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -55,6 +56,7 @@
             android:layout_marginTop="10dp"
             android:layout_marginLeft="18dp"
             android:layout_marginStart="18dp"
+            android:textColor="#808080"
             android:text="Cafe Tanstaafl"
             android:textAppearance="@style/TextAppearance.AppCompat.Large" />
 
@@ -91,7 +93,8 @@
             android:layout_below="@+id/horizontalMenu"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="20dp"
-            android:text="Description of restaurant" />
+            android:textSize="20sp"
+            android:text="Menu" />
 
 
         <LinearLayout
@@ -114,18 +117,6 @@
 </android.support.v4.widget.NestedScrollView>
 
 
-    <android.support.design.widget.CoordinatorLayout
-        android:layout_width="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="20dp"
-        android:layout_height="wrap_content">
-        <ImageView
-            android:id="@+id/menu"
-            android:src="@drawable/menu"
-            android:layout_width="35dp"
-            android:layout_height="35dp"/>
-    </android.support.design.widget.CoordinatorLayout>
 
 
 </RelativeLayout>
