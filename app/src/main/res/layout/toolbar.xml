@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="horizontal"
+    android:id="@+id/main_content"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
     <android.support.v7.widget.Toolbar
@@ -44,6 +45,7 @@
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
         android:layout_alignParentEnd="true"
+        android:visibility="gone"
         android:layout_alignParentRight="true"
         android:layout_marginBottom="11dp"
         android:layout_marginEnd="20dp"
@@ -66,7 +68,6 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/cartQty"
                 android:textSize="14sp"
-                android:text="1"
                 android:textColor="#808080"
                 android:layout_centerHorizontal="true"
                 android:layout_centerVertical="true"/>
@@ -91,4 +92,4 @@
     </android.support.v7.widget.Toolbar>
 
 
-</LinearLayout>
+</FrameLayout>

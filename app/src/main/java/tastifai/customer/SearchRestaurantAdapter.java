@@ -45,7 +45,7 @@ public class SearchRestaurantAdapter extends RecyclerView.Adapter<SearchRestaura
         //holder.cuisine.setText(restaurantModelArrayList.get(position).getCuisine());
         holder.image.setImageResource(R.drawable.foodpic);
         //holder.ratingValue.setText(restaurantModelArrayList.get(position).getRating());
-        //holder.timings.setText(restaurantModelArrayList.get(position).getOpenTime() + " - " + restaurantModelArrayList.get(position).getCloseTime());
+        holder.timings.setText(restaurantModelArrayList.get(position).getTiming());
         //holder.ratingBar.setRating(Float.parseFloat(restaurantModelArrayList.get(position).getRating()));
         holder.relativeLayout.setOnClickListener(new View.OnClickListener() {
             @Override

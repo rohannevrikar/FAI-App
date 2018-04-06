@@ -45,8 +45,9 @@ public class FoodFragment extends Fragment {
 
 
 
-        adapter.addFragment(recommendationsFragment,  "FAI");
         adapter.addFragment(searchRestaurantFragment, "Near Me");
+        adapter.addFragment(recommendationsFragment,  "FAI");
+
         //adapter.addFragment(rushFragment, "Rush");
 
         viewPager.setAdapter(adapter);

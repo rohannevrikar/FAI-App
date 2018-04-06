@@ -31,10 +31,14 @@ public class MeFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.include_viewpager,container,false);
         viewPager = view.findViewById(R.id.viewpager);
-        settingsOptions.add("Edit Bio");
-        settingsOptions.add("Manage Addresses");
-        settingsOptions.add("Referrals");
-        settingsOptions.add("Offers");
+        if(settingsOptions.size() != 0){
+            settingsOptions.clear();
+        }
+//        settingsOptions.add("Edit Bio");
+//        settingsOptions.add("Manage Addresses");
+//        settingsOptions.add("Referrals");
+//        settingsOptions.add("Offers");
+        settingsOptions.add("Logout");
 
         setupViewPager(viewPager);
         initAction();

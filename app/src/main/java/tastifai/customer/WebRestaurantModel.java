@@ -12,6 +12,24 @@ public class WebRestaurantModel implements Comparable<WebRestaurantModel> {
     private double latitude;
     private double longitude;
     private double distance;
+    private String timing;
+    private int deliveryCharges;
+
+    public int getDeliveryCharges() {
+        return deliveryCharges;
+    }
+
+    public void setDeliveryCharges(int deliveryCharges) {
+        this.deliveryCharges = deliveryCharges;
+    }
+
+    public String getTiming() {
+        return timing;
+    }
+
+    public void setTiming(String timing) {
+        this.timing = timing;
+    }
 
     public double getDistance() {
         return distance;

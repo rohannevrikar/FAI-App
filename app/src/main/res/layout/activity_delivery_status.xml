@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="tastifai.customer.DeliveryStatus">
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+    </android.support.v7.widget.Toolbar>
+    <RelativeLayout
+        android:layout_below="@+id/toolbar"
+        android:id="@+id/layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <tastifai.customer.CustomTextView
+            android:id="@+id/heading"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Your Falafal's order"
+            android:textSize="20sp"
+            android:layout_marginTop="20dp"
+            android:layout_centerHorizontal="true"/>
+
+        <RelativeLayout
+            android:layout_centerInParent="true"
+            android:layout_width="wrap_content"
+            android:padding="10dp"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/placed"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="@drawable/delivery_circle"/>
+            <tastifai.customer.CustomLightTextView
+                android:id="@+id/placedText"
+                android:layout_width="50dp"
+                android:layout_marginTop="10dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/placed"
+                android:text="Order placed"/>
+            <tastifai.customer.CustomLightTextView
+                android:id="@+id/placedTime"
+                android:layout_width="50dp"
+                android:layout_marginTop="10dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/placedText"
+                android:text="03:45"/>
+            <Button
+                android:id="@+id/accepted"
+                android:layout_marginLeft="80dp"
+
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="@drawable/delivery_circle"/>
+            <tastifai.customer.CustomLightTextView
+                android:id="@+id/acceptedText"
+                android:layout_width="60dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginLeft="80dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/accepted"
+                android:text="Order accepted"/>
+            <tastifai.customer.CustomLightTextView
+                android:id="@+id/acceptedTime"
+                android:layout_width="60dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginLeft="80dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/acceptedText"
+                android:text="03:47"/>
+            <Button
+                android:id="@+id/outForDelivery"
+                android:layout_marginLeft="160dp"
+
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="@drawable/delivery_circle"/>
+            <tastifai.customer.CustomLightTextView
+                android:id="@+id/outForDeliveryText"
+                android:layout_width="50dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginLeft="160dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/outForDelivery"
+                android:text="Out for delivery"/>
+            <tastifai.customer.CustomLightTextView
+                android:id="@+id/outForDeliveryTime"
+                android:layout_width="50dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginLeft="160dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/outForDeliveryText"
+                android:text="04:10"/>
+            <Button
+                android:id="@+id/delivered"
+                android:layout_marginLeft="240dp"
+
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="@drawable/delivery_circle"/>
+            <tastifai.customer.CustomLightTextView
+                android:id="@+id/deliveredText"
+                android:layout_width="60dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginLeft="240dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/delivered"
+                android:text="Order Delivered"/>
+
+            <tastifai.customer.CustomLightTextView
+                android:id="@+id/deliveredTime"
+                android:layout_width="60dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginLeft="240dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/deliveredText"
+                android:text="04:20"/>
+        </RelativeLayout>
+    </RelativeLayout>
+    <tastifai.customer.CustomTextView
+        android:id="@+id/message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:layout_centerInParent="true"
+        android:textSize="22sp"
+        android:text="No Orders To Show"/>
+
+</RelativeLayout>

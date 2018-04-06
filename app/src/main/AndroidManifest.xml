@@ -23,14 +23,16 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
-        <activity android:name=".WelcomeActivity">
+        <activity android:name=".WelcomeActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".MainActivity" />
+        <activity android:name=".MainActivity"
+            android:screenOrientation="portrait"/>
 
         <meta-data
             android:name="android.support.VERSION"
@@ -57,15 +59,20 @@
             </intent-filter>
         </activity>
         <activity android:name=".LoginActivity" />
-        <activity android:name=".ItemDetails" />
-        <activity android:name=".Cart" />
-        <activity android:name=".FacebookLoginActivity" />
-        <activity android:name=".MapsActivity" />
-        <activity android:name=".AddressActivity" />
+        <activity android:name=".Cart" android:screenOrientation="portrait"/>
+        <activity android:name=".FacebookLoginActivity" android:screenOrientation="portrait" />
+        <activity android:name=".MapsActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".AddLocationActivity" android:screenOrientation="portrait"/>
+
+        <activity android:name=".AddressActivity" android:screenOrientation="portrait"/>
         <activity
             android:name=".MenuPopUp"
-            android:theme="@style/AppTheme.CustomThemePopUp"></activity>
-        <activity android:name=".ManageAddresses"></activity>
+            android:theme="@style/AppTheme.CustomThemePopUp" />
+        <activity android:name=".ManageAddresses" android:screenOrientation="portrait"/>
+        <activity android:name=".DeliveryStatus" android:screenOrientation="portrait" />
+        <activity android:name=".RatingPopUp" android:screenOrientation="portrait">
+
+        </activity>
     </application>
 
 </manifest>

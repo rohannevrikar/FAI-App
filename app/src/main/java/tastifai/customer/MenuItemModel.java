@@ -13,6 +13,42 @@ public class MenuItemModel implements Serializable {
     private String itemId;
     private String restaurantId;
     private int itemETA;
+    private String category;
+    private int deliveryCharges;
+    private String orderId;
+    private String restaurantName;
+
+    public String getRestaurantName() {
+        return restaurantName;
+    }
+
+    public void setRestaurantName(String restaurantName) {
+        this.restaurantName = restaurantName;
+    }
+
+    public String getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(String orderId) {
+        this.orderId = orderId;
+    }
+
+    public int getDeliveryCharges() {
+        return deliveryCharges;
+    }
+
+    public void setDeliveryCharges(int deliveryCharges) {
+        this.deliveryCharges = deliveryCharges;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
 
     public String getItemId() {
         return itemId;

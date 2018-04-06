@@ -10,6 +10,15 @@ public class Item implements Serializable{
     private String item;
     private String qty;
     private String price;
+    private String orderId;
+
+    public String getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(String orderId) {
+        this.orderId = orderId;
+    }
 
     public String getItem() {
         return item;

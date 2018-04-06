@@ -16,6 +16,7 @@ import java.util.ArrayList;
 
 import static tastifai.customer.Cart.total;
 import static tastifai.customer.MainActivity.cartItems;
+import static tastifai.customer.SearchRestaurantAdapter.restaurantModel;
 
 /**
  * Created by Rohan Nevrikar on 22-03-2018.
@@ -49,7 +50,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(final CartAdapter.ViewHolder holder, final int position) {
-        holder.itemName.setText(checkoutList.get(position).getItemName());
+        holder.itemName.setText("(" + checkoutList.get(position).getCategory() + ") " + checkoutList.get(position).getItemName());
         holder.itemQty.setText(Integer.toString(checkoutList.get(position).getQuantity()));
         holder.itemPrice.setText(Integer.toString(Integer.parseInt(checkoutList.get(position).getPrice()) * checkoutList.get(position).getQuantity()));
 
@@ -62,12 +63,12 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.ViewHolder> {
 
                 total = total + Integer.parseInt(checkoutList.get(position).getPrice());
                 itemTotal.setText("" + total);
-                checkoutTotal.setText("" + total);
-                SharedPreferences.Editor editor = cartSharedPref.edit();
-                Gson gson = new Gson();
-                String jsonCart = gson.toJson(checkoutList);
-                editor.putString("cart", jsonCart);
-                editor.apply();
+                checkoutTotal.setText(String.valueOf(total + restaurantModel.getDeliveryCharges()));
+//                SharedPreferences.Editor editor = cartSharedPref.edit();
+//                Gson gson = new Gson();
+//                String jsonCart = gson.toJson(checkoutList);
+//                editor.putString("cart", jsonCart);
+//                editor.apply();
 
 
             }
@@ -88,16 +89,16 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.ViewHolder> {
                     Intent intent = new Intent(context, MainActivity.class);
                     (context).startActivity(intent);
                 }
-                SharedPreferences.Editor editor = cartSharedPref.edit();
-                Gson gson = new Gson();
-                String jsonCart = gson.toJson(checkoutList);
-                editor.putString("cart", jsonCart);
-                editor.apply();
-
+//                SharedPreferences.Editor editor = cartSharedPref.edit();
+//                Gson gson = new Gson();
+//                String jsonCart = gson.toJson(checkoutList);
+//                editor.putString("cart", jsonCart);
+//                editor.apply();
+//
                 notifyDataSetChanged();
 
                     itemTotal.setText("" + total);
-                    checkoutTotal.setText("" + total);
+                    checkoutTotal.setText(String.valueOf(total + restaurantModel.getDeliveryCharges()));
 
 
             }

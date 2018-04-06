@@ -33,6 +33,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
@@ -43,6 +44,7 @@ import java.util.Set;
 
 import static android.app.Activity.RESULT_OK;
 import static tastifai.customer.MainActivity.cartItems;
+import static tastifai.customer.MainActivity.progressDialog;
 import static tastifai.customer.SearchRestaurantAdapter.restaurantModel;
 
 /**
@@ -95,7 +97,10 @@ public class MenuFragment extends Fragment {
         ((MainActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         ((MainActivity)getActivity()).getSupportActionBar().setDisplayShowHomeEnabled(true);
         ((MainActivity)getActivity()).getSupportActionBar().setDisplayShowTitleEnabled(false);
+        if(((MainActivity)getActivity()).isConnectedToInternet())
             new APIAsyncTask().execute(url);
+        else
+            ((MainActivity)getActivity()).setUpAlert();
         categoryRecyclerView = view.findViewById(R.id.categoryRecyclerView);
         categoryRecyclerView.setNestedScrollingEnabled(false);
 
@@ -124,19 +129,35 @@ public class MenuFragment extends Fragment {
     }
 
         private void initMenu(){
-        horizontalScrollMenuView.addItem("10am - 11pm", R.drawable.ic_clock);
-        horizontalScrollMenuView.addItem("1.5km", R.drawable.ic_action_name);
-        horizontalScrollMenuView.addItem("DELIVERY", R.drawable.ic_delivery);
+
+            String string = "\u20B9";
+            byte[] utf8 = null;
+            try {
+                utf8 = string.getBytes("UTF-8");
+                string = new String(utf8, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+            Log.d(TAG, "initMenu: " + restaurantModel.getTiming());
+            if(((!restaurantModel.getTiming().equals("null")) || (!restaurantModel.getTiming().equals("")))){
+                horizontalScrollMenuView.addItem(restaurantModel.getTiming().trim(), R.mipmap.clock);
+
+            }else
+                horizontalScrollMenuView.addItem("10:00 AM - 10:00 PM", R.mipmap.clock);
+            double value = restaurantModel.getDistance();
+            double rounded = (double) Math.round(value * 10) / 10;
+            horizontalScrollMenuView.addItem(String.valueOf(rounded) + "km" ,R.mipmap.distancetores);
+            horizontalScrollMenuView.addItem(string + "100 FOR ONE", R.mipmap.person);
     }
 private class APIAsyncTask extends AsyncTask<Object,String,String> {
     StringBuilder builder = new StringBuilder();
-    private ProgressDialog progressDialog;
 
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
         progressDialog = new ProgressDialog(getActivity());
         progressDialog.setMessage("Loading...");
+        progressDialog.setCancelable(false);
         progressDialog.show();
     }
 
@@ -168,7 +189,10 @@ private class APIAsyncTask extends AsyncTask<Object,String,String> {
                             menuItem.setPrice(obj.getString("ItemPrice"));
                             menuItem.setItemETA(obj.getInt("ItemETA"));
                             menuItem.setItemId(obj.getString("ItemId"));
+                            menuItem.setCategory(obj.getString("ItemType"));
                             menuItem.setRestaurantId(obj.getString("RestaurantID"));
+                            menuItem.setRestaurantName(restaurantModel.getRestaurantName());
+                            menuItem.setDeliveryCharges(restaurantModel.getDeliveryCharges());
                             menuItem.setQuantity(1);
                             menuItem.setClicked(false);
                             menuList.add(menuItem);
@@ -191,15 +215,24 @@ private class APIAsyncTask extends AsyncTask<Object,String,String> {
             }
 
         } catch (JSONException e) {
+
+            e.printStackTrace();
+        }catch (NullPointerException e){
             int tracker = 0;
 
-            while(tracker == 0){
+            while (tracker == 0) {
                 Toast.makeText(getActivity(), "No internet connection, trying to connect...", Toast.LENGTH_SHORT).show();
                 new APIAsyncTask().execute(url);
-                if(((MainActivity)getActivity()).isConnectedToInternet())
+                if (((MainActivity) getActivity()).isConnectedToInternet())
                     tracker = 1;
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
             }
             e.printStackTrace();
+
         }
     }
 

@@ -85,12 +85,12 @@ public class HorizontalScrollMenuView extends LinearLayout {
                 item_backgroundColor, item_marginTop, item_marginBottom, item_marginLeft,
                 item_marginRight, item_colorSelected, item_textSize, backgroundNotifications);
 
-        itemAdapter.setOnHSItemClickListener(new ItemAdapter.OnHSItemClickListener() {
-            @Override
-            public void onHSClick(MenuItem menuItem, int position) {
-                onHSMenuClickListener.onHSMClick(menuItem, position);
-            }
-        });
+//        itemAdapter.setOnHSItemClickListener(new ItemAdapter.OnHSItemClickListener() {
+//            @Override
+//            public void onHSClick(MenuItem menuItem, int position) {
+//                onHSMenuClickListener.onHSMClick(menuItem, position);
+//            }
+//        });
         recyclerView.setAdapter(itemAdapter);
     }
 

@@ -1,7 +1,9 @@
 package tastifai.customer;
 
+import android.app.ProgressDialog;
 import android.content.ClipData;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -20,8 +22,11 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
@@ -58,9 +63,13 @@ import java.net.URL;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -105,18 +114,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     HttpsURLConnection conn1 = null;
     private SharedPreferences locationSharedPreferences;
+    private ArrayList<Order> orderRatingList = new ArrayList<>();
+    private RecyclerView orderRatingRecyclerView;
 
     FacebookAsyncTask asyncTask = new FacebookAsyncTask(MainActivity.this);
     private String subLocality;
     private String address;
-    private  static final String TAG = "MainActivity";
+    private static final String TAG = "MainActivity";
     private SharedPreferences sharedPreferences;
     ArrayList<WebRestaurantModel> webRestaurantList;
     String url = "http://foodspecwebapi.us-east-1.elasticbeanstalk.com/api/FoodSpec/GetAllRestaurant";
-    public static String guid;
     private double userLat;
     private double userLng;
-
+    public static ProgressDialog progressDialog;
 
 
     @Override
@@ -124,40 +134,52 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         locationSharedPreferences = getSharedPreferences(locationPref, Context.MODE_PRIVATE);
+        String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());
         toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Log.d(TAG, "onCreate: timeStamp: " + timeStamp);
         restaurantModelArrayList.clear();
-
+        if (cartItems.size() != 0)
+            cartItems.clear();
         webRestaurantList = new ArrayList<>();
-        if(locationSharedPreferences!=null){
-            subLocality = locationSharedPreferences.getString("subLocality",null);
+        if (locationSharedPreferences != null) {
+            subLocality = locationSharedPreferences.getString("subLocality", null);
             address = locationSharedPreferences.getString("address", null);
             userLat = Double.parseDouble(locationSharedPreferences.getString("latitude", ""));
             userLng = Double.parseDouble(locationSharedPreferences.getString("longitude", ""));
 
-            Toast.makeText(this, "Showing results from " + subLocality, Toast.LENGTH_LONG).show();
         }
-        cartSharedPref = getSharedPreferences("Cart", Context.MODE_PRIVATE);
+//        if(userModel!=null){
+//            subLocality = userModel.getSubLocality();
+//            address = userModel.getFullAddress();
+//            userLat = userModel.getLatitude();
+//            userLng = userModel.getLongitude();
+//        }
+
+        //cartSharedPref = getSharedPreferences("Cart", Context.MODE_PRIVATE);
 //        if(cartItems.size() == 0){
 //            Log.d(TAG, "onCreate: clearing cartsharedpred");
 //            cartSharedPref.edit().clear().apply();
 //        }
-        if(cartSharedPref.getString("cart", null) != null){
-            Gson gson = new Gson();
-            String json = cartSharedPref.getString("cart", null);
-            Log.d(TAG, "onCreate: cartsharedpref not null" +json);
-
-            Type type = new TypeToken<ArrayList<MenuItemModel>>(){}.getType();
-            cartItems = gson.fromJson(json, type);
-        }
+//        if(cartSharedPref.getString("cart", null) != null){
+//            Gson gson = new Gson();
+//            String json = cartSharedPref.getString("cart", null);
+//            Log.d(TAG, "onCreate: cartsharedpref not null" +json);
+//
+//            Type type = new TypeToken<ArrayList<MenuItemModel>>(){}.getType();
+//            cartItems = gson.fromJson(json, type);
+//        }
         //getApplicationContext().deleteDatabase("restaurants.db");
         //databaseHelper = new DatabaseHelper(this);
-        guid = UUID.randomUUID().toString();
         Log.d(TAG, "onCreate: " + UUID.randomUUID().toString());
-        BottomNavigationView bottomNavigationView = (BottomNavigationView)findViewById(R.id.bottom_navigation);
+        BottomNavigationView bottomNavigationView = (BottomNavigationView) findViewById(R.id.bottom_navigation);
         BottomNavigationViewHelper.disableShiftMode(bottomNavigationView);
 
         bottomNavigationView.setSelectedItemId(R.id.food);
-        new APIAsyncTask().execute(url);
+        Log.d(TAG, "onCreate: " + isConnectedToInternet());
+        if (isConnectedToInternet())
+            new APIAsyncTask().execute(url);
+        else
+            setUpAlert();
 
         dropDown = findViewById(R.id.drop_down);
         dropDown.setOnClickListener(new View.OnClickListener() {
@@ -169,9 +191,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         sharedPreferences = getApplicationContext().getSharedPreferences("FacebookPref", MODE_PRIVATE);
-        if(sharedPreferences!=null){
+        if (sharedPreferences != null) {
             try {
-                Toast.makeText(MainActivity.this, sharedPreferences.getString("friends", ""),Toast.LENGTH_SHORT).show();
                 JSONObject object = new JSONObject(sharedPreferences.getString("friends", ""));
                 friendsArray = object.getJSONArray("data");
                 Log.d(TAG, "onCreate: " + friendsArray);
@@ -182,21 +203,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Log.d(TAG, "onCreate: USer id" + id);
             //profilePic.setProfileId(id);
         }
-        Log.d("MainActivity", "onCreate: " + AccessToken.getCurrentAccessToken().toString());
-        if(isConnectedToInternet()){
-
-        }else{
-            int trakcer = 0;
-            Toast.makeText(MainActivity.this, "No internet connection, trying to connect...", Toast.LENGTH_SHORT).show();
-
-            while(trakcer == 0){
-                asyncTask.delegate = (AsyncResponse) this;
-                asyncTask.execute("https://graph.facebook.com/" + id + "/picture?type=large");
-                if(isConnectedToInternet())
-                    trakcer = 1;
-            }
-
-        }
+        //Log.d("MainActivity", "onCreate: " + AccessToken.getCurrentAccessToken().toString());
 
 
 //        GraphRequest request = GraphRequest.newGraphPathRequest(
@@ -241,7 +248,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
-
+        asyncTask.delegate = (AsyncResponse) this;
+        asyncTask.execute("https://graph.facebook.com/" + id + "/picture?type=large");
         //appBarLayout = (AppBarLayout) findViewById(R.id.app_bar_layout);
 
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -255,11 +263,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         view.setNavigationItemSelectedListener(MainActivity.this);
         cartLayout = toolbar.findViewById(R.id.cartLayout);
         cartQty = cartLayout.findViewById(R.id.cartQty);
-        if(cartSharedPref != null){
-            if(cartItems.size() == 0){
+        if (cartSharedPref != null) {
+            if (cartItems.size() == 0) {
                 cartLayout.setVisibility(View.GONE);
-            }
-            else
+            } else
                 cartLayout.setVisibility(View.VISIBLE);
             cartQty.setText("" + cartItems.size());
         }
@@ -273,7 +280,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         });
 
-                bottomNavigationView.setOnNavigationItemSelectedListener(
+        bottomNavigationView.setOnNavigationItemSelectedListener(
                 new BottomNavigationView.OnNavigationItemSelectedListener() {
                     @Override
                     public boolean onNavigationItemSelected(@NonNull android.view.MenuItem item) {
@@ -314,19 +321,33 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     }
 
-
+    public void setUpAlert() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Your phone is not connected to the internet. Please close the app and try again")
+                .setCancelable(false)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        finish();
+                        System.exit(0);
+                    }
+                });
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
 
     @Override
     public void onBackPressed() {
-       Intent intent = new Intent(this, MainActivity.class);
+        Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
     }
+
     private void previousFragment() {
         super.onBackPressed();
 
     }
 
-    public void itemDetailsData(MenuItemModel menuItemModel){
+    public void itemDetailsData(MenuItemModel menuItemModel) {
         Bundle args = new Bundle();
         args.putSerializable("menuItemModel", menuItemModel);
         ItemDetails fragment = new ItemDetails();
@@ -334,8 +355,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         getFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.frame_layout, fragment).commit();
 
 
-
     }
+
     private void setupViewPager(ViewPager viewPager) {
         adapter = new RestaurantFragmentAdapter(getSupportFragmentManager());
         adapter.clearList();
@@ -348,30 +369,29 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         rushFragment = new RushFragment();
 
 
-
-        adapter.addFragment(recommendationsFragment,  "FAI");
+        adapter.addFragment(recommendationsFragment, "FAI");
         adapter.addFragment(nearbyRestaurantsFragment, "Near Me");
         //adapter.addFragment(rushFragment, "Rush");
 
         viewPager.setAdapter(adapter);
         //viewPager.setOffscreenPageLimit(3);
     }
-    public boolean isConnectedToInternet(){
-        ConnectivityManager connectivity = (ConnectivityManager)getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-        if (connectivity != null)
-        {
+
+    public boolean isConnectedToInternet() {
+        ConnectivityManager connectivity = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivity != null) {
             NetworkInfo[] info = connectivity.getAllNetworkInfo();
             if (info != null)
                 for (int i = 0; i < info.length; i++)
-                    if (info[i].getState() == NetworkInfo.State.CONNECTED)
-                    {
+                    if (info[i].getState() == NetworkInfo.State.CONNECTED) {
                         return true;
                     }
 
         }
         return false;
     }
-//        public void updateViewPager() {
+
+    //        public void updateViewPager() {
 //        adapter.clearList();
 //
 //
@@ -401,26 +421,32 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
 
-
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        if(item.getItemId() == R.id.logout) {
-            if (AccessToken.getCurrentAccessToken() == null) {
-                return true; // already logged out
-            }
-            this.getSharedPreferences("FacebookPref", 0).edit().clear().apply();
-            new GraphRequest(AccessToken.getCurrentAccessToken(), "/me/permissions/", null, HttpMethod.DELETE, new GraphRequest
-                    .Callback() {
-                @Override
-                public void onCompleted(GraphResponse graphResponse) {
+//        if(item.getItemId() == R.id.logout) {
+//            if (AccessToken.getCurrentAccessToken() == null) {
+//                return true; // already logged out
+//            }
+//            this.getSharedPreferences("FacebookPref", 0).edit().clear().apply();
+//            new GraphRequest(AccessToken.getCurrentAccessToken(), "/me/permissions/", null, HttpMethod.DELETE, new GraphRequest
+//                    .Callback() {
+//                @Override
+//                public void onCompleted(GraphResponse graphResponse) {
+//
+//                    LoginManager.getInstance().logOut();
+//                    Toast.makeText(MainActivity.this, "You are successfully logged out", Toast.LENGTH_SHORT).show();
+//                    Intent intent = new Intent(MainActivity.this, FacebookLoginActivity.class);
+//                    startActivity(intent);
+//
+//                }
+//            }).executeAsync();
+//        }
+        if (item.getItemId() == R.id.myorder) {
+            Intent intent = new Intent(MainActivity.this, DeliveryStatus.class);
+            startActivity(intent);
+        }
+        if (item.getItemId() == R.id.home) {
 
-                    LoginManager.getInstance().logOut();
-                    Toast.makeText(MainActivity.this, "You are successfully logged out", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(MainActivity.this, FacebookLoginActivity.class);
-                    startActivity(intent);
-
-                }
-            }).executeAsync();
         }
 //        } else if(item.getItemId() == R.id.myaccount){
 //            Toast.makeText(MainActivity.this, "Clicked", Toast.LENGTH_SHORT).show();
@@ -434,25 +460,27 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
-    public ArrayList<WebRestaurantModel> getList(){
+
+    public ArrayList<WebRestaurantModel> getList() {
         return webRestaurantList;
     }
 
     @Override
     public void processFinish(Bitmap output) {
 
-        if(output!=null){
+        if (output != null) {
             pictureBitmap = output;
             profilePic.setImageBitmap(output);
 
-        }
-        else
+        } else
             Toast.makeText(MainActivity.this, "Problem loading profile picture", Toast.LENGTH_SHORT).show();
     }
-    public JSONArray friendsArrayFromFacebook(){
+
+    public JSONArray friendsArrayFromFacebook() {
         return friendsArray;
     }
-//    private void findDistance(){
+
+    //    private void findDistance(){
 //        double earthRadius = 6371;
 //
 //        double latDiff = Math.abs(convertToRadian(lat2 - lat1));
@@ -468,31 +496,42 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 //    private double convertToRadian(double degree){
 //        return degree * (Math.PI/180);
 //    }
-    public ImageView getImage(){
+    public ImageView getImage() {
         return profilePic;
     }
-@Override
-protected void onSaveInstanceState(Bundle outState) {
-    super.onSaveInstanceState(outState);
-}public double findDistance(double restaurantLat, double restaurantLng, double userLat, double userLng) {
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }
+
+    public double findDistance(double restaurantLat, double restaurantLng, double userLat, double userLng) {
         Log.d(TAG, "findDistance: " + restaurantLat + " " + restaurantLng + " " + userLat + " " + userLng);
 //        double lat1 = 23.034393; //CIIE
 //        double lng1 = 72.532507; //CIIE
 //        double lat2 = 23.019207; //Satyam
 //        double lng2 = 72.514001; //Satyam
         double earthRadius = 6371; // miles (or 6371.0 kilometers)
-        double dLat = Math.toRadians(userLat-restaurantLat);
-        double dLng = Math.toRadians(userLng-restaurantLng);
+        double dLat = Math.toRadians(userLat - restaurantLat);
+        double dLng = Math.toRadians(userLng - restaurantLng);
         double sindLat = Math.sin(dLat / 2);
         double sindLng = Math.sin(dLng / 2);
         double a = Math.pow(sindLat, 2) + Math.pow(sindLng, 2)
                 * Math.cos(Math.toRadians(restaurantLat)) * Math.cos(Math.toRadians(userLat));
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         double distance = earthRadius * c;
         Log.d(TAG, "distFrom: " + distance);
         return distance;
 
     }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (progressDialog != null)
+            progressDialog.dismiss();
+    }
+
     public int calculateDistanceInKilometer(double userLat, double userLng,
                                             double venueLat, double venueLng) {
 
@@ -504,11 +543,12 @@ protected void onSaveInstanceState(Bundle outState) {
                 * Math.sin(lngDistance / 2) * Math.sin(lngDistance / 2);
 
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        Log.d(TAG, "calculateDistanceInKilometer: " +(int) (Math.round(6371 * c)));
+        Log.d(TAG, "calculateDistanceInKilometer: " + (int) (Math.round(6371 * c)));
 
         return (int) (Math.round(6371 * c));
     }
-    public String convertDateTime(String dateTime){
+
+    public String convertDateTime(String dateTime) {
         String start_dt = dateTime.replace("T", " ");
 
         DateFormat parser = new SimpleDateFormat("yyyy-MM-dd HH:mm");
@@ -522,21 +562,36 @@ protected void onSaveInstanceState(Bundle outState) {
         DateFormat formatter = new SimpleDateFormat("dd MMM, yyyy hh:mm a");
         return formatter.format(date);
     }
-    private class APIAsyncTask extends AsyncTask<Object,String,String> {
+
+    private class APIAsyncTask extends AsyncTask<Object, String, String> {
         StringBuilder builder = new StringBuilder();
 
         @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressDialog = new ProgressDialog(MainActivity.this);
+            progressDialog.setMessage("Loading...");
+            progressDialog.setCancelable(false);
+            progressDialog.show();
+        }
+
+        @Override
         protected void onPostExecute(String s) {
+            progressDialog.dismiss();
+
             try {
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+                    restaurantModelArrayList.clear();
                     JSONArray array = new JSONArray(s);
-                    for(int i=0;i<array.length(); i++){
+                    for (int i = 0; i < array.length(); i++) {
                         Log.d(TAG, "onPostExecute: " + array.length());
                         JSONObject obj = array.getJSONObject(i);
                         WebRestaurantModel model = new WebRestaurantModel();
                         model.setId(obj.getString("RestaurantID"));
                         model.setRestaurantName(obj.getString("RestaurantName"));
-                        if(!obj.getString("Latitude").equals("null")){
+                        model.setTiming(obj.getString("Timings"));
+                        model.setDeliveryCharges(obj.getInt("DeliveryCharges"));
+                        if (!obj.getString("Latitude").equals("null")) {
                             model.setLatitude(Double.parseDouble(obj.getString("Latitude")));
                             model.setLongitude(Double.parseDouble(obj.getString("Longitude")));
                         }
@@ -553,12 +608,12 @@ protected void onSaveInstanceState(Bundle outState) {
 //                            Toast.makeText(MainActivity.this, "data not inserted", Toast.LENGTH_SHORT).show();
 
                     }
-                    for(WebRestaurantModel model : restaurantModelArrayList){
-                        model.setDistance(findDistance(model.getLatitude(),model.getLongitude(),userLat, userLng));
+                    for (WebRestaurantModel model : restaurantModelArrayList) {
+                        model.setDistance(findDistance(model.getLatitude(), model.getLongitude(), userLat, userLng));
 
                     }
                     Collections.sort(restaurantModelArrayList);
-                    for(WebRestaurantModel model : restaurantModelArrayList){
+                    for (WebRestaurantModel model : restaurantModelArrayList) {
                         Log.d(TAG, "onPostExecute: " + model.getRestaurantName() + " " + model.getDistance());
 
                     }
@@ -569,15 +624,23 @@ protected void onSaveInstanceState(Bundle outState) {
                 }
 
             } catch (JSONException e) {
+
+                e.printStackTrace();
+            } catch (NullPointerException e) {
                 int tracker = 0;
 
-                while(tracker == 0){
+                while (tracker == 0) {
                     Toast.makeText(MainActivity.this, "No internet connection, trying to connect...", Toast.LENGTH_SHORT).show();
                     new APIAsyncTask().execute(url);
-                    if(isConnectedToInternet())
+                    if (isConnectedToInternet())
                         tracker = 1;
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e1) {
+                        e1.printStackTrace();
+                    }
                 }
-                e.printStackTrace();
+
             }
         }
 
@@ -596,7 +659,6 @@ protected void onSaveInstanceState(Bundle outState) {
                 while ((line = reader.readLine()) != null) {
                     Log.d(TAG, "doInBackground: " + line);
                     builder.append(line);
-
 
 
                 }
@@ -619,5 +681,6 @@ protected void onSaveInstanceState(Bundle outState) {
 
         }
     }
+
 
 }

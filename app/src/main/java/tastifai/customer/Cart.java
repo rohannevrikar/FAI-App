@@ -38,11 +38,15 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.UUID;
 
+import static tastifai.customer.FacebookLoginActivity.userModel;
 import static tastifai.customer.MainActivity.cartItems;
-import static tastifai.customer.MainActivity.guid;
+import static tastifai.customer.SearchRestaurantAdapter.restaurantModel;
 
 public class Cart extends AppCompatActivity {
     private RecyclerView cartRecyclerView;
@@ -51,24 +55,33 @@ public class Cart extends AppCompatActivity {
     private ImageView back;
     public TextView itemTotal;
     public TextView checkoutTotal;
+    public TextView deliveryCharges;
+    public String guid;
+
     public static int total;
     private SharedPreferences cartSharedPref;
-    private ArrayList<MenuItemModel> checkoutCart;
+//    private ArrayList<MenuItemModel> checkoutCart;
     private static final String TAG = "Cart";
     private Button btnPlaceOrder;
+    private SharedPreferences statusPref;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cart);
-        cartSharedPref = getSharedPreferences("Cart", Context.MODE_PRIVATE);
-        if(cartSharedPref != null){
-            Gson gson = new Gson();
-            String json = cartSharedPref.getString("cart", null);
-            Type type = new TypeToken<ArrayList<MenuItemModel>>(){}.getType();
-            checkoutCart = gson.fromJson(json, type);
-            Log.d(TAG, "onCreate: checkoutcart created" + checkoutCart.size() + json);
-        }
+        deliveryCharges = findViewById(R.id.deliveryCharges);
+        statusPref = getApplicationContext().getSharedPreferences("StatusPref", MODE_PRIVATE);
+        final SharedPreferences.Editor editor = statusPref.edit();
+        deliveryCharges.setText(String.valueOf(restaurantModel.getDeliveryCharges()));
+        total = 0;
+//        cartSharedPref = getSharedPreferences("Cart", Context.MODE_PRIVATE);
+//        if(cartSharedPref != null){
+//            Gson gson = new Gson();
+//            String json = cartSharedPref.getString("cart", null);
+//            Type type = new TypeToken<ArrayList<MenuItemModel>>(){}.getType();
+//            checkoutCart = gson.fromJson(json, type);
+//            Log.d(TAG, "onCreate: checkoutcart created" + checkoutCart.size() + json);
+//        }
 
         cartRecyclerView = findViewById(R.id.cartRecyclerView);
         itemTotal = findViewById(R.id.itemTotal);
@@ -76,18 +89,19 @@ public class Cart extends AppCompatActivity {
 
         linearLayoutManager = new LinearLayoutManager(this);
         cartRecyclerView.setLayoutManager(linearLayoutManager);
-        for(int i=0;i<checkoutCart.size(); i++){
-            total = total + checkoutCart.get(i).getQuantity() * Integer.parseInt(checkoutCart.get(i).getPrice());
+        for(int i=0;i<cartItems.size(); i++){
+            total = total + cartItems.get(i).getQuantity() * Integer.parseInt(cartItems.get(i).getPrice());
         }
         itemTotal.setText(Integer.toString(total));
-        checkoutTotal.setText(Integer.toString(total));
-        CartAdapter adapter = new CartAdapter(this, checkoutCart, itemTotal, checkoutTotal);
+        checkoutTotal.setText(String.valueOf(total + restaurantModel.getDeliveryCharges()));
+        CartAdapter adapter = new CartAdapter(this, cartItems, itemTotal, checkoutTotal);
         back = findViewById(R.id.back);
         back.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(Cart.this, MainActivity.class);
-                startActivity(intent);
+//                Intent intent = new Intent(Cart.this, MainActivity.class);
+//                startActivity(intent);
+                finish();
             }
         });
         cartRecyclerView.setAdapter(adapter);
@@ -97,47 +111,62 @@ public class Cart extends AppCompatActivity {
             public void onClick(View view) {
                 Toast.makeText(Cart.this, "Placing your order...", Toast.LENGTH_SHORT).show();
                 JSONArray ordersArray = new JSONArray();
+                guid = UUID.randomUUID().toString();
                 JSONObject postData;
-//                for(int i=0;i<cartItems.size();i++){
+                for(int i=0;i<cartItems.size();i++){
                     postData = new JSONObject();
                     try {
-                        postData.put("RestaurantId", cartItems.get(0).getRestaurantId());
-                        postData.put("ItemId",  cartItems.get(0).getItemId());
-                        postData.put("Quantity",  cartItems.get(0).getQuantity());
+                        Log.d(TAG, "onClick: " + cartItems.get(0).getItemName());
+                        postData.put("RestaurantId", cartItems.get(i).getRestaurantId());
+
+                        postData.put("ItemId",  cartItems.get(i).getItemId());
+                        postData.put("Quantity",  cartItems.get(i).getQuantity());
                         postData.put("StatusId", 7);
-                        postData.put("UserId", 7);
-                        postData.put("UserFirstName", "Subhradip");
-                        postData.put("UserContactNumber", "9292929292");
-                        postData.put("ItemName", cartItems.get(0).getItemName() );
-                        postData.put("ItemPrice", cartItems.get(0).getPrice());
-                        postData.put("ItemETA", cartItems.get(0).getItemETA());
-                        postData.put("DateTime", "2017-08-10T00:00:00");
-                        postData.put("DeliverAt", "MSH1302");
+                        postData.put("UserId", userModel.getUserId());
+                        postData.put("UserFirstName", userModel.getFirst_name());
+                        postData.put("UserContactNumber", userModel.getContactNumber());
+                        postData.put("ItemName", "(" + cartItems.get(i).getCategory() + ")"+ cartItems.get(i).getItemName());
+                        postData.put("ItemPrice", cartItems.get(i).getPrice());
+                        postData.put("ItemETA", cartItems.get(i).getItemETA());
+                        postData.put("DateTime", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime()));
+                        postData.put("DeliverAt", userModel.getBuildingName() + " " + userModel.getStreetName() + " " + userModel.getSubLocality());
                         postData.put("GUID", guid);
-                        //ordersArray.put(postData);
+                        ordersArray.put(postData);
+                        editor.putString("restaurantName", cartItems.get(i).getRestaurantName());
+                        editor.putString("guid", guid);
+                        editor.putInt("userId", userModel.getUserId());
+                        editor.apply();
 
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-//                }
+                }
                 JSONObject orderObj = new JSONObject();
                 try {
                     orderObj.put("Orders", ordersArray);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                Log.d(TAG, "onClick: " + postData);
-                new PlaceOrderApi().execute("http://foodspecwebapi.us-east-1.elasticbeanstalk.com/api/FoodSpec/PostOrder", postData.toString());
+                Log.d(TAG, "onClick: " + orderObj.toString());
+                new PlaceOrderApi().execute("http://foodspecwebapi.us-east-1.elasticbeanstalk.com/api/FoodSpec/PostOrder", ordersArray.toString());
 
 
             }
         });
     }
+
+    @Override
+    public void onBackPressed() {
+        finish();
+    }
+
     private class PlaceOrderApi extends AsyncTask<String, Void, String>{
 
         @Override
         protected void onPostExecute(String s) {
-            Toast.makeText(Cart.this, "Order placed " + s, Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(Cart.this, DeliveryStatus.class);
+            intent.putExtra("guid", guid);
+            startActivity(intent);
 
         }
 

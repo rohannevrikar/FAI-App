@@ -74,12 +74,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@+id/cuisine"
+            android:padding="20dp"
             android:layout_marginTop="15dp"
             android:clickable="false"
             app:backgroundMenuColor="@color/colorPrimary"
             app:icon_height="30dp"
             app:icon_width="30dp"
-            app:item_marginLeft="15dp"
+
+
             app:item_marginBottom="5dp">
 
         </tastifai.customer.HorizontalScrollMenuView>

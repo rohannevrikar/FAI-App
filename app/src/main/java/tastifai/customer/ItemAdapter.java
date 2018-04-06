@@ -96,12 +96,12 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
 
 
 
-        holder.item_content.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onHSItemClickListener.onHSClick(menuItem, position);
-            }
-        });
+//        holder.item_content.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                onHSItemClickListener.onHSClick(menuItem, position);
+//            }
+//        });
 
 
     }

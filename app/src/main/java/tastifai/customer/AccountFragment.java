@@ -15,6 +15,7 @@ import android.widget.TextView;
 
 import static android.content.Context.MODE_PRIVATE;
 import static com.facebook.FacebookSdk.getApplicationContext;
+import static tastifai.customer.FacebookLoginActivity.userModel;
 import static tastifai.customer.MainActivity.pictureBitmap;
 
 /**
@@ -27,6 +28,8 @@ public class AccountFragment extends Fragment {
     private SharedPreferences sharedPreferences;
     private TextView name;
     private TextView email;
+    private TextView phoneNumber;
+
     private RecyclerView settingsRecyclerView;
     private LinearLayoutManager layoutManager;
 
@@ -41,9 +44,11 @@ public class AccountFragment extends Fragment {
         settingsRecyclerView = view.findViewById(R.id.settingsRecyclerView);
         name = view.findViewById(R.id.userName);
         email = view.findViewById(R.id.email);
+        phoneNumber = view.findViewById(R.id.phoneNumber);
         if(sharedPreferences != null){
-            name.setText(sharedPreferences.getString("first_name", "") + " " + sharedPreferences.getString("last_name", ""));
-            email.setText(sharedPreferences.getString("email", ""));
+            name.setText(userModel.getFirst_name() + " " + userModel.getLast_name());
+            email.setText(userModel.getEmail());
+            phoneNumber.setText(userModel.getContactNumber());
         }
         layoutManager = new LinearLayoutManager(getActivity());
 

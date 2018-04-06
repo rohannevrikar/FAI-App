@@ -7,7 +7,7 @@
     <color name="background">#EEEAE9</color>
     <color name="white">#ffffff</color>
     <color name="black">#000000</color>
-
+    <color name="dark_grey">#808080</color>
     <!-- dots inactive colors -->
     <color name="dot_inactive">#EAEAEA</color>
     <!-- dots active colors -->

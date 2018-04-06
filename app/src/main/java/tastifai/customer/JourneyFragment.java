@@ -30,6 +30,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
+import static tastifai.customer.FacebookLoginActivity.userModel;
+import static tastifai.customer.MainActivity.progressDialog;
+
 /**
  * Created by Rohan Nevrikar on 25-03-2018.
  */
@@ -40,26 +43,33 @@ public class JourneyFragment extends Fragment {
     private RecyclerView orderHistoryRecyclerView;
     private JourneyAdapter adapter;
     private static final String TAG = "JourneyFragment";
+    private String url = "http://foodspecwebapi.us-east-1.elasticbeanstalk.com/api/FoodSpec/GetSearchOrdersHistory/" + userModel.getUserId();
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        view = inflater.inflate(R.layout.order_history,container,false);
+        view = inflater.inflate(R.layout.order_history, container, false);
         orderHistoryRecyclerView = view.findViewById(R.id.order_history_recyclerview);
-        new JourneyAPI().execute("http://foodspecwebapi.us-east-1.elasticbeanstalk.com/api/FoodSpec/GetSearchOrdersHistory/7");
+        if (((MainActivity) getActivity()).isConnectedToInternet())
+            new JourneyAPI().execute(url);
+        else
+            ((MainActivity) getActivity()).setUpAlert();
 
         return view;
     }
+
     private class JourneyAPI extends AsyncTask<Object, String, String> {
         StringBuilder builder = new StringBuilder();
         String text;
         String dateTime, deliverAt, itemName, itemPrice, quantity;
         ArrayList<String> guidList = new ArrayList<>();
-        ProgressDialog progressDialog;
+
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
             progressDialog = new ProgressDialog(getActivity());
             progressDialog.setMessage("Loading...");
+            progressDialog.setCancelable(false);
             progressDialog.show();
 //            if(!mainActivity.isFinishing()){
 //
@@ -72,34 +82,35 @@ public class JourneyFragment extends Fragment {
             progressDialog.dismiss();
             try {
                 JSONArray orderArray = new JSONArray(s);
-                for(int i=0;i<orderArray.length();i++){
+                for (int i = 0; i < orderArray.length(); i++) {
                     JSONObject orderObj = orderArray.getJSONObject(i);
                     guidList.add(orderObj.getString("GUID"));
                 }
                 double totalPrice = 0;
 
                 Set<String> guidUnique = new HashSet<>(guidList);
-                for(String guid : guidUnique){
+                for (String guid : guidUnique) {
                     ArrayList<Item> itemList = new ArrayList<>();
                     Order order = new Order();
                     totalPrice = 0;
 
 
-                    for(int i=0;i<orderArray.length(); i++){
+                    for (int i = 0; i < orderArray.length(); i++) {
                         JSONObject orderObj = orderArray.getJSONObject(i);
 
-                        if(orderObj.getString("GUID").equals(guid)){
+                        if (orderObj.getString("GUID").equals(guid)) {
                             Item item = new Item();
                             item.setItem(orderObj.getString("ItemName"));
                             totalPrice = totalPrice + (Double.parseDouble(orderObj.getString("ItemPrice")) * Double.parseDouble(orderObj.getString("Quantity")));
 
                             item.setPrice(orderObj.getString("ItemPrice"));
+                            item.setOrderId(orderObj.getString("OrderId"));
                             item.setQty(orderObj.getString("Quantity"));
                             itemList.add(item);
                             order.setRestaurantName(orderObj.getString("RestaurantName"));
                             order.setCustomerName(orderObj.getString("UserFirstName"));
                             order.setGuid(orderObj.getString("GUID"));
-                            order.setDateTime(((MainActivity)getActivity()).convertDateTime(orderObj.getString("DateTime")));
+                            order.setDateTime(((MainActivity) getActivity()).convertDateTime(orderObj.getString("DateTime")));
                             order.setDeliveryAddress(orderObj.getString("DeliverAt"));
                             order.setItemList(itemList);
                         }
@@ -119,19 +130,26 @@ public class JourneyFragment extends Fragment {
                 orderHistoryRecyclerView.setAdapter(adapter);
 
 
-
             } catch (JSONException e) {
                 e.printStackTrace();
-            }catch (NullPointerException e){
-                if(getActivity()!=null){
-//                    if(!getActivity(){
-//                        Toast.makeText(getActivity(), "Trying to connect to the internet..", Toast.LENGTH_SHORT).show();
-//
-//                    }
-                }
+            } catch (NullPointerException e) {
+                int tracker = 0;
 
+                while (tracker == 0) {
+                    Toast.makeText(getActivity(), "No internet connection, trying to connect...", Toast.LENGTH_SHORT).show();
+                    new JourneyAPI().execute(url);
+                    if (((MainActivity) getActivity()).isConnectedToInternet())
+                        tracker = 1;
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e1) {
+                        e1.printStackTrace();
+                    }
+                }
+                e.printStackTrace();
             }
         }
+
         @Override
         protected String doInBackground(Object... objects) {
 
@@ -148,7 +166,6 @@ public class JourneyFragment extends Fragment {
                 while ((line = reader.readLine()) != null) {
                     Log.d("OrderHistory", "doInBackground: " + line);
                     builder.append(line);
-
 
 
                 }
