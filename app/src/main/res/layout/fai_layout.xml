@@ -1,11 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent">
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:padding="20dp"
+    xmlns:tools="http://schemas.android.com/tools"
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/faiRecyclerView"
-        android:layout_marginTop="20dp"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"/>
-</RelativeLayout>
+        android:layout_height="match_parent">
+        <tastifai.customer.CustomTextView
+            android:id="@+id/heading1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="22sp"
+            android:text="People's choice"/>
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/restaurantsRecommendationRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_marginTop="15dp"
+            android:layout_below="@+id/heading1"
+            tools:listItem="@layout/restaurant_recommendation_row"
+            android:layout_height="wrap_content">
+
+        </android.support.v7.widget.RecyclerView>
+        <tastifai.customer.CustomTextView
+            android:id="@+id/heading2"
+            android:layout_width="wrap_content"
+            android:layout_below="@+id/restaurantsRecommendationRecyclerView"
+            android:layout_marginTop="20dp"
+            android:layout_height="wrap_content"
+            android:textSize="22sp"
+            android:text="Your Choice"/>
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/usersRecommendationRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_marginTop="15dp"
+            android:layout_below="@+id/heading2"
+            android:layout_height="wrap_content">
+
+        </android.support.v7.widget.RecyclerView>
+    </RelativeLayout>
+
+
+   </ScrollView>

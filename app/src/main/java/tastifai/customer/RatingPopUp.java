@@ -50,6 +50,11 @@ public class RatingPopUp extends AppCompatActivity {
     private Button ratingButton;
 
     @Override
+    public void onBackPressed() {
+
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_rating_pop_up);
@@ -59,7 +64,13 @@ public class RatingPopUp extends AppCompatActivity {
         LinearLayoutManager layoutManager = new LinearLayoutManager(RatingPopUp.this);
         Intent intent = getIntent();
         Bundle args = intent.getBundleExtra("bundle");
-        orderRatingList = (ArrayList<Order>) args.getSerializable("orderRatingList");
+        if(args != null)
+            orderRatingList = (ArrayList<Order>) args.getSerializable("orderRatingList");
+        else{
+            Toast.makeText(this, "Oops, something went wrong, trying again", Toast.LENGTH_SHORT).show();
+            Intent faultIntent = new Intent(RatingPopUp.this, FacebookLoginActivity.class);
+            startActivity(faultIntent);
+        }
         orderRatingRecyclerView.setLayoutManager(layoutManager);
         RatingAdapter adapter = new RatingAdapter(RatingPopUp.this, orderRatingList);
         orderRatingRecyclerView.setAdapter(adapter);
@@ -70,41 +81,60 @@ public class RatingPopUp extends AppCompatActivity {
             public void onClick(View view) {
                 JSONArray ratingsOrdersArray = new JSONArray();
                 JSONObject postData;
-                if (ratingPOJOArrayList.size() == 0) {
-                    Toast.makeText(RatingPopUp.this, "Please rate all the items", Toast.LENGTH_LONG).show();
+//                if (ratingPOJOArrayList.size() == 0) {
+//                    Toast.makeText(RatingPopUp.this, "Please rate all the items", Toast.LENGTH_LONG).show();
+//
+//                } else {
+                    for (int i = 0; i < orderRatingList.size(); i++) {
+                        for(Item item : orderRatingList.get(i).getItemList()){
+                            postData = new JSONObject();
 
-                } else {
-                    for (int i = 0; i < ratingPOJOArrayList.size(); i++) {
-                        postData = new JSONObject();
-                        try {
-                            if (ratingPOJOArrayList.get(i).getRatingValue() == 0) {
-                                Toast.makeText(RatingPopUp.this, "Please rate all the items", Toast.LENGTH_LONG).show();
+                            //ArrayList<Item> itemArrayList = (ArrayList<Item>) ratingItemList;
 
-                            } else {
-                                Log.d(TAG, "onClick: " + ratingPOJOArrayList.get(i).getUserId() + " " + ratingPOJOArrayList.get(i).getRatingValue() + " " + ratingPOJOArrayList.get(i).getOrderId());
-                                postData.put("UserID", ratingPOJOArrayList.get(i).getUserId());
-                                postData.put("RatingValue", ratingPOJOArrayList.get(i).getRatingValue());
-                                postData.put("OrderID", ratingPOJOArrayList.get(i).getOrderId());
+                            Log.d(TAG, "onClick: " + item.getUserId() + " " + item.getRatingValue() + " " + item.getOrderId());
+                            try {
+                                postData.put("UserID", item.getUserId());
+                                postData.put("RatingValue", item.getRatingValue());
+                                postData.put("OrderID", item.getOrderId());
                                 ratingsOrdersArray.put(postData);
 
-                                JSONObject orderObj = new JSONObject();
-                                try {
-                                    orderObj.put("Ratings", ratingsOrdersArray);
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
-                                new PostRatingAPI().execute("http://foodspecwebapi.us-east-1.elasticbeanstalk.com/api/FoodSpec/PostOrderRatings", ratingsOrdersArray.toString());
-
+                            } catch (JSONException e) {
+                                e.printStackTrace();
                             }
 
-
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
                         }
+
+//                        try {
+//                            if (ratingPOJOArrayList.get(i).getRatingValue() == 0) {
+//                                Toast.makeText(RatingPopUp.this, "Please rate all the items", Toast.LENGTH_LONG).show();
+//
+//                            } else {
+//                                Log.d(TAG, "onClick: " + ratingPOJOArrayList.get(i).getUserId() + " " + ratingPOJOArrayList.get(i).getRatingValue() + " " + ratingPOJOArrayList.get(i).getOrderId());
+//                                postData.put("UserID", ratingPOJOArrayList.get(i).getUserId());
+//                                postData.put("RatingValue", ratingPOJOArrayList.get(i).getRatingValue());
+//                                postData.put("OrderID", ratingPOJOArrayList.get(i).getOrderId());
+//                                ratingsOrdersArray.put(postData);
+//
+//                                JSONObject orderObj = new JSONObject();
+//                                try {
+//                                    orderObj.put("Ratings", ratingsOrdersArray);
+//                                } catch (JSONException e) {
+//                                    e.printStackTrace();
+//                                }
+//                                new PostRatingAPI().execute("http://foodspecwebapi.us-east-1.elasticbeanstalk.com/api/FoodSpec/PostOrderRatings", ratingsOrdersArray.toString());
+//
+//                            }
+//
+//
+//
+//                        } catch (JSONException e) {
+//                            e.printStackTrace();
+//                        }
                     }
 
-                }
+//                }
+                new PostRatingAPI().execute("http://foodspecwebapi.us-east-1.elasticbeanstalk.com/api/FoodSpec/PostOrderRatings", ratingsOrdersArray.toString());
+
 
             }
         });

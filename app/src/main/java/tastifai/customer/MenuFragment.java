@@ -37,6 +37,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -45,7 +46,7 @@ import java.util.Set;
 import static android.app.Activity.RESULT_OK;
 import static tastifai.customer.MainActivity.cartItems;
 import static tastifai.customer.MainActivity.progressDialog;
-import static tastifai.customer.SearchRestaurantAdapter.restaurantModel;
+import static tastifai.customer.MainActivity.restaurantModel;
 
 /**
  * Created by Rohan Nevrikar on 19-02-2018.
@@ -155,10 +156,12 @@ private class APIAsyncTask extends AsyncTask<Object,String,String> {
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        progressDialog = new ProgressDialog(getActivity());
-        progressDialog.setMessage("Loading...");
-        progressDialog.setCancelable(false);
-        progressDialog.show();
+        if(!((MainActivity)getActivity()).isFinishing()){
+            progressDialog = new ProgressDialog(getActivity());
+            progressDialog.setMessage("Loading...");
+            progressDialog.setCancelable(false);
+            progressDialog.show();
+        }
     }
 
     @Override
@@ -243,8 +246,8 @@ private class APIAsyncTask extends AsyncTask<Object,String,String> {
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setDoInput(true);
             connection.setRequestMethod("GET");
-            connection.setReadTimeout(7000);
-            connection.setConnectTimeout(7000);
+            connection.setReadTimeout(30000);
+            connection.setConnectTimeout(30000);
             InputStream istream = connection.getInputStream();
             BufferedReader reader = new BufferedReader(new InputStreamReader(istream));
             String line;
@@ -267,7 +270,16 @@ private class APIAsyncTask extends AsyncTask<Object,String,String> {
             e.printStackTrace();
         } catch (MalformedURLException e) {
             e.printStackTrace();
+        } catch (SocketTimeoutException e) {
+
+            Intent i = getActivity().getBaseContext().getPackageManager()
+                    .getLaunchIntentForPackage( getActivity().getBaseContext().getPackageName() );
+            i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            progressDialog.dismiss();
+            startActivity(i);
+            e.printStackTrace();
         } catch (IOException e) {
+
             e.printStackTrace();
         }
         return null;

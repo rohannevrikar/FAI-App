@@ -11,6 +11,24 @@ public class Item implements Serializable{
     private String qty;
     private String price;
     private String orderId;
+    private int ratingValue;
+    private int userId;
+
+    public int getRatingValue() {
+        return ratingValue;
+    }
+
+    public void setRatingValue(int ratingValue) {
+        this.ratingValue = ratingValue;
+    }
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
 
     public String getOrderId() {
         return orderId;

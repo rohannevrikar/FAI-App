@@ -1,10 +1,14 @@
 package tastifai.customer;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.Image;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -37,6 +41,7 @@ import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -46,7 +51,7 @@ import java.util.UUID;
 
 import static tastifai.customer.FacebookLoginActivity.userModel;
 import static tastifai.customer.MainActivity.cartItems;
-import static tastifai.customer.SearchRestaurantAdapter.restaurantModel;
+import static tastifai.customer.MainActivity.restaurantModel;
 
 public class Cart extends AppCompatActivity {
     private RecyclerView cartRecyclerView;
@@ -90,7 +95,7 @@ public class Cart extends AppCompatActivity {
         linearLayoutManager = new LinearLayoutManager(this);
         cartRecyclerView.setLayoutManager(linearLayoutManager);
         for(int i=0;i<cartItems.size(); i++){
-            total = total + cartItems.get(i).getQuantity() * Integer.parseInt(cartItems.get(i).getPrice());
+            total = total + cartItems.get(i).getQuantity() * (int)Double.parseDouble(cartItems.get(i).getPrice());
         }
         itemTotal.setText(Integer.toString(total));
         checkoutTotal.setText(String.valueOf(total + restaurantModel.getDeliveryCharges()));
@@ -134,6 +139,7 @@ public class Cart extends AppCompatActivity {
                         ordersArray.put(postData);
                         editor.putString("restaurantName", cartItems.get(i).getRestaurantName());
                         editor.putString("guid", guid);
+                        editor.putString("placedTime", new SimpleDateFormat("HH:mm").format(Calendar.getInstance().getTime()));
                         editor.putInt("userId", userModel.getUserId());
                         editor.apply();
 
@@ -148,11 +154,40 @@ public class Cart extends AppCompatActivity {
                     e.printStackTrace();
                 }
                 Log.d(TAG, "onClick: " + orderObj.toString());
-                new PlaceOrderApi().execute("http://foodspecwebapi.us-east-1.elasticbeanstalk.com/api/FoodSpec/PostOrder", ordersArray.toString());
+                if(isConnectedToInternet())
+                    new PlaceOrderApi().execute("http://foodspecwebapi.us-east-1.elasticbeanstalk.com/api/FoodSpec/PostOrder", ordersArray.toString());
+                else{
+                    AlertDialog.Builder builder = new AlertDialog.Builder(Cart.this);
+                    builder.setMessage("Your phone is not connected to the internet. Please check your connection")
+                            .setCancelable(false)
+                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                   Intent intent = new Intent(Cart.this, Cart.class);
+                                    startActivity(intent);
+                                }
+                            });
+                    AlertDialog alert = builder.create();
+                    alert.show();
+                }
+
 
 
             }
         });
+    }
+    public boolean isConnectedToInternet() {
+        ConnectivityManager connectivity = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivity != null) {
+            NetworkInfo[] info = connectivity.getAllNetworkInfo();
+            if (info != null)
+                for (int i = 0; i < info.length; i++)
+                    if (info[i].getState() == NetworkInfo.State.CONNECTED) {
+                        return true;
+                    }
+
+        }
+        return false;
     }
 
     @Override
@@ -231,8 +266,21 @@ public class Cart extends AppCompatActivity {
                 e.printStackTrace();
             } catch (MalformedURLException e) {
                 e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (SocketTimeoutException e) {
+                try {
+
+
+                    Thread.sleep(5000);
+                    Intent i = getBaseContext().getPackageManager()
+                            .getLaunchIntentForPackage(getBaseContext().getPackageName());
+                    i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(i);
+                    e.printStackTrace();
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
+            }catch (IOException e) {
+             e.printStackTrace();
             }
             return null;
         }

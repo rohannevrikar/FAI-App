@@ -163,17 +163,24 @@ public class AddressActivity extends AppCompatActivity implements GoogleApiClien
             ArrayList<AddressPOJO> addressPOJOArrayList = new ArrayList<>();
             try {
                 JSONArray array = new JSONArray(s);
+                Log.d(TAG, "onPostExecute: array length: " + array.length());
                 for (int i = 0; i < array.length(); i++) {
                     JSONObject obj = array.getJSONObject(i);
+                    Log.d(TAG, "onPostExecute: object: " + obj.toString());
                     AddressPOJO addressPOJO = new AddressPOJO();
-                    addressPOJO.setBuildingName(obj.getString("BuildingName "));
-                    addressPOJO.setStreetName(obj.getString("StreetName "));
-                    addressPOJO.setCityName(obj.getString("CityName "));
-                    addressPOJO.setStateName(obj.getString("StateName "));
-                    addressPOJO.setCountryName(obj.getString("Country "));
+                    addressPOJO.setBuildingName(obj.getString("BuildingName"));
+                    addressPOJO.setStreetName(obj.getString("StreetName"));
+                    addressPOJO.setCityName(obj.getString("CityName"));
+                    addressPOJO.setStateName(obj.getString("StateName"));
+                    addressPOJO.setCountryName(obj.getString("Country"));
                     addressPOJO.setPostalCode(obj.getString("PostalCode"));
                     addressPOJO.setIsActive(obj.getString("IsActive"));
                     addressPOJO.setIsDeleted(obj.getString("IsDeleted"));
+                    addressPOJO.setAddressType(obj.getString("AddressType"));
+                    addressPOJO.setLatitude(obj.getDouble("Latitude"));
+                    addressPOJO.setLongitude(obj.getDouble("Longitude"));
+                    addressPOJO.setAreaName(obj.getString("AreaName"));
+
                     addressPOJOArrayList.add(addressPOJO);
                 }
 

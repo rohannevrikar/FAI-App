@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -15,10 +16,13 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -30,6 +34,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -62,6 +67,7 @@ import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -71,6 +77,7 @@ import java.util.Map;
 
 import static tastifai.customer.FacebookLoginActivity.userModel;
 import static tastifai.customer.MainActivity.cartItems;
+import static tastifai.customer.MainActivity.progressDialog;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,AdapterView.OnItemSelectedListener  {
     private static final String TAG = "MapsActivity";
@@ -89,6 +96,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private String subLocality;
     private String locality;
     private String country;
+    private TextView area;
     String[] addressType = { "Home", "Work", "Other",  };
     private Spinner spinner;
 
@@ -106,10 +114,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         prefManagerMaps = new PrefManagerMaps(this);
-        if (!prefManagerMaps.isFirstTimeLaunch()) {
-            launchHomeScreen();
-            finish();
-        }
+//        if (!prefManagerMaps.isFirstTimeLaunch()) {
+//            launchHomeScreen();
+//            finish();
+//        }
         setContentView(R.layout.activity_maps);
         locationSharedPref = getSharedPreferences(locationPref, Context.MODE_PRIVATE);
         sharedPreferences = getApplicationContext().getSharedPreferences("FacebookPref", MODE_PRIVATE);
@@ -144,26 +152,25 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 //                    String address = (String) bundle.getString("address");
 //                    Log.d(TAG, "onCreate: " + address + latlng.latitude);
 //                    moveCamera(latlng, 15f);
-//                    mMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
-//
-//                        @Override
-//                        public void onMapLoaded() {
-//                            Log.d(TAG, "onMapLoaded: ");
-//                            getAddress(latlng);
-//                            mMap.setOnCameraIdleListener(new GoogleMap.OnCameraIdleListener() {
-//                                @Override
-//                                public void onCameraIdle() {
-//                                    finalLocation = mMap.getCameraPosition().target;
-//                                    Log.d(TAG, "onCameraIdle: " + finalLocation.latitude + " " + finalLocation.longitude);
-////                  Location addressLocation = new Location(LocationManager.GPS_PROVIDER);
-////                  addressLocation.setLatitude(finalLocation.latitude);
-////                  addressLocation.setLongitude(finalLocation.longitude);
-//                                    getAddress(finalLocation);
-//                                }
-//                            });
+                    mMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
+
+                        @Override
+                        public void onMapLoaded() {
+                            Log.d(TAG, "onMapLoaded: ");
+                            mMap.setOnCameraIdleListener(new GoogleMap.OnCameraIdleListener() {
+                                @Override
+                                public void onCameraIdle() {
+                                    finalLocation = mMap.getCameraPosition().target;
+                                    Log.d(TAG, "onCameraIdle: " + finalLocation.latitude + " " + finalLocation.longitude);
+//                  Location addressLocation = new Location(LocationManager.GPS_PROVIDER);
+//                  addressLocation.setLatitude(finalLocation.latitude);
+//                  addressLocation.setLongitude(finalLocation.longitude);
+                                    getAddress(finalLocation);
+                                }
+                            });
 //                            // mMap.setMyLocationEnabled(true);
-//                        }
-//                    });
+                        }
+                    });
 //                } else
 //                    getDeviceLocation();
 //            } else
@@ -184,12 +191,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         try {
             List<Address> addresses = geoCoder.getFromLocation(latlng.latitude, latlng.longitude, 1);
             subLocality = addresses.get(0).getSubLocality();
+            area.setText(subLocality);
             fullAddress = addresses.get(0).getAddressLine(0);
             locality = addresses.get(0).getLocality();
             country = addresses.get(0).getCountryName();
             zipCode = addresses.get(0).getPostalCode();
             Log.d(TAG, "getAddress: " + locality);
-            Toast.makeText(MapsActivity.this, addresses.get(0).getSubLocality() + " " + addresses.get(0).getAddressLine(0), Toast.LENGTH_SHORT).show();
+            //Toast.makeText(MapsActivity.this, addresses.get(0).getSubLocality() + " " + addresses.get(0).getAddressLine(0), Toast.LENGTH_SHORT).show();
             setAddress.setVisibility(View.VISIBLE);
         } catch (IOException e) {
             e.printStackTrace();
@@ -197,19 +205,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
     private void launchHomeScreen() {
-        prefManagerMaps.setFirstTimeLaunch(false);
-        startActivity(new Intent(MapsActivity.this, RatingPopUp.class));
+        //prefManagerMaps.setFirstTimeLaunch(false);
+        startActivity(new Intent(MapsActivity.this, MainActivity.class));
         finish();
     }
     private void searchAddress(){
 
     }
     private void init(){
-
+        area = findViewById(R.id.area);
         setAddress = findViewById(R.id.setAddress);
         setAddress.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/GT-Walsheim.ttf"));
         setAddress.setVisibility(View.GONE);
-        flatNumber = findViewById(R.id.flat_number);
+        flatNumber = findViewById(R.id.building_name);
         streetName = findViewById(R.id.street_name);
         phoneNumber = findViewById(R.id.contact_number);
         spinner = findViewById(R.id.spinner2);
@@ -220,13 +228,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         setAddress.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(TextUtils.isEmpty(flatNumber.getText()) || TextUtils.isEmpty(streetName.getText()) || TextUtils.isEmpty(phoneNumber.getText())){
+                if(TextUtils.isEmpty(flatNumber.getText()) || TextUtils.isEmpty(phoneNumber.getText())){
                     if(TextUtils.isEmpty(flatNumber.getText())){
                         flatNumber.setError("Please enter flat number");
                     }
-                    if(TextUtils.isEmpty(streetName.getText())){
-                        streetName.setError("Please enter street name or landmark");
-                    }
+
                     if(TextUtils.isEmpty(phoneNumber.getText())){
                         phoneNumber.setError("Please enter phone number");
                     }
@@ -234,12 +240,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     phoneNumber.setError("Phone number should be of 10 characters");
 
                 } else{
-                    SharedPreferences.Editor editor = locationSharedPref.edit();
-                    editor.putString("subLocality",subLocality);
-                    editor.putString("address", fullAddress);
-                    editor.putString("latitude", String.valueOf(userModel.getLatitude()));
-                    editor.putString("longitude", String.valueOf(userModel.getLongitude()));
-                    editor.apply();
+
                     userModel.setContactNumber(phoneNumber.getText().toString());
                     userModel.setBuildingName(flatNumber.getText().toString());
                     userModel.setStreetName(streetName.getText().toString());
@@ -248,46 +249,87 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     userModel.setCountry(country);
                     userModel.setZipCode(zipCode);
                     userModel.setAddressType(addressTypeSelected);
+                    userModel.setLatitude(finalLocation.latitude);
+                    userModel.setLongitude(finalLocation.longitude);
 
                     JSONObject postData;
 //                for(int i=0;i<cartItems.size();i++){
-                    postData = new JSONObject();
-                    try {
-                       // Log.d(TAG, "onClick: " + cartItems.get(0).getItemName());
 
-                        postData.put("BuildingName", userModel.getBuildingName());
-                        postData.put("PhoneNumber", Double.valueOf(userModel.getContactNumber()));
-                        postData.put("StreetName", userModel.getStreetName());
-                        postData.put("Country", userModel.getCountry());
-                        postData.put("UserEmail", userModel.getEmail());
-                        postData.put("UserFName", userModel.getFirst_name());
-                        postData.put("UserLName", userModel.getLast_name());
-                        postData.put("CityName", userModel.getCity());
-                        postData.put("IsActive", 1);
-                        postData.put("IsDeleted", 0);
-                        postData.put("DefaultAddress", userModel.getCity());
-                        postData.put("PostalCode", userModel.getZipCode());
-                        postData.put("StateName", "Gujarat");
-                        postData.put("UserPassword", "facebook123");
-                        postData.put("FacebookID", userModel.getFbUserId());
-                        postData.put("CreatedDateTime", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime()));
-                        postData.put("AddressType", userModel.getAddressType());
+//                        if(!validateAddress(MapsActivity.this, userModel.getStreetName() + " " + userModel.getCity())){
+//                            Log.d(TAG, "onClick: not validated");
+//                            AlertDialog.Builder builder1 = new AlertDialog.Builder(MapsActivity.this);
+//                            builder1.setMessage("Your address couldn't be identified, please enter a valid address");
+//                            builder1.setCancelable(false);
+//
+//                            builder1.setPositiveButton(
+//                                    "OK",
+//                                    new DialogInterface.OnClickListener() {
+//                                        public void onClick(DialogInterface dialog, int id) {
+//                                            dialog.cancel();
+//                                        }
+//                                    });
+//                            AlertDialog alert11 = builder1.create();
+//                            alert11.show();
+//                        }else{
+                            postData = new JSONObject();
+                            try {
+                                postData.put("BuildingName", userModel.getBuildingName());
+                                postData.put("PhoneNumber", userModel.getContactNumber());
+                                postData.put("StreetName", userModel.getStreetName());
+                                postData.put("Country", userModel.getCountry());
+                                postData.put("UserEmail", userModel.getEmail());
+                                postData.put("UserFName", userModel.getFirst_name());
+                                postData.put("UserLName", userModel.getLast_name());
+                                postData.put("CityName", userModel.getCity());
+                                postData.put("IsActive", 1);
+                                postData.put("IsDeleted", 0);
+                                postData.put("DefaultAddress", userModel.getCity());
+                                postData.put("PostalCode", userModel.getZipCode());
+                                postData.put("StateName", "Gujarat");
+                                postData.put("UserPassword", "facebook123");
+                                postData.put("FacebookID", userModel.getFbUserId());
+                                postData.put("CreatedDateTime", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime()));
+                                postData.put("AddressType", userModel.getAddressType());
+                                postData.put("Latitude", Math.round(userModel.getLatitude() * 100000000)/100000000);
+                                postData.put("Longitude", Math.round(userModel.getLongitude() * 100000000)/100000000);
+                                postData.put("AreaName", userModel.getSubLocality());
+                                Log.d(TAG, "onClick: lat lng sublocal: " + userModel.getLatitude() + " " + userModel.getLongitude() + " " + userModel.getSubLocality());
 
-                        //postData.put()
+
+                                //postData.put()
 
 
 
 
 
-                        //ordersArray.put(postData);
+                                //ordersArray.put(postData);
 
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
 //                }
 
-                    Log.d(TAG, "onClick: " + postData);
-                    new PostUserDetailsAPI().execute("http://foodspecwebapi.us-east-1.elasticbeanstalk.com/api/FoodSpec/PostUserDetails", postData.toString());
+                            Log.d(TAG, "onClick: " + postData);
+                            if(isConnectedToInternet())
+                                new PostUserDetailsAPI().execute("http://foodspecwebapi.us-east-1.elasticbeanstalk.com/api/FoodSpec/PostUserDetails", postData.toString());
+                            else{
+                                AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
+                                builder.setMessage("Your phone is not connected to the internet. Please check your connection")
+                                        .setCancelable(false)
+                                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialogInterface, int i) {
+                                                Intent intent = new Intent(MapsActivity.this, MapsActivity.class);
+                                                startActivity(intent);
+                                            }
+                                        });
+                                AlertDialog alert = builder.create();
+                                alert.show();
+                            }
+
+
+
+                       // Log.d(TAG, "onClick: " + cartItems.get(0).getItemName());
 
 
 
@@ -308,6 +350,46 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     }
+    public boolean isConnectedToInternet() {
+        ConnectivityManager connectivity = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivity != null) {
+            NetworkInfo[] info = connectivity.getAllNetworkInfo();
+            if (info != null)
+                for (int i = 0; i < info.length; i++)
+                    if (info[i].getState() == NetworkInfo.State.CONNECTED) {
+                        return true;
+                    }
+
+        }
+        return false;
+    }
+    public boolean validateAddress(Context context, String strAddress) {
+
+        Geocoder coder = new Geocoder(context);
+        List<Address> address;
+        LatLng p1 = null;
+        Log.d(TAG, "getLocationFromAddress: " + strAddress);
+
+        try {
+            // May throw an IOException
+            address = coder.getFromLocationName(strAddress, 5);
+            Log.d(TAG, "validateAddress: " + address.size());
+            if (address == null) {
+                return false;
+            }
+            if(address.size() == 0){
+                Log.d(TAG, "validateAddress: returning false");
+               return false;
+            }
+
+        } catch (IOException ex) {
+
+            ex.printStackTrace();
+        }
+
+        return true;
+    }
+
     private void initMap(){
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(MapsActivity.this);
@@ -324,6 +406,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Toast.makeText(this, "You can't make map requests",Toast.LENGTH_SHORT).show();
         return false;
     }
+
     private void getLocationPermission(){
         String[] permissions = {Manifest.permission.ACCESS_COARSE_LOCATION,
         Manifest.permission.ACCESS_FINE_LOCATION};
@@ -478,6 +561,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 e.printStackTrace();
             } catch (MalformedURLException e) {
                 e.printStackTrace();
+            }catch (SocketTimeoutException e) {
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
+                Intent i = getBaseContext().getPackageManager()
+                        .getLaunchIntentForPackage(getBaseContext().getPackageName() );
+                i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+                startActivity(i);
+                e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -491,10 +586,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            progressDialog = new ProgressDialog(MapsActivity.this);
-            progressDialog.setMessage("Loading...");
-            progressDialog.setCancelable(false);
-            progressDialog.show();
+            if(!MapsActivity.this.isFinishing()){
+                progressDialog = new ProgressDialog(MapsActivity.this);
+                progressDialog.setMessage("Loading...");
+                progressDialog.setCancelable(false);
+                progressDialog.show();
+            }
         }
 
         @Override
@@ -506,7 +603,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 JSONObject obj = new JSONObject(s);
                 userModel.setFirst_name(obj.getString("UserFName"));
                 userModel.setLast_name(obj.getString("UserLName"));
-                userModel.setContactNumber(String.valueOf(obj.getDouble("PhoneNumber")));
+                userModel.setContactNumber(obj.getString("PhoneNumber"));
                 userModel.setEmail(obj.getString("UserEmail"));
                 userModel.setUserId(obj.getInt("UserId"));
                 Log.d(TAG, "onPostExecute: " + userModel.getUserId());
@@ -573,7 +670,21 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 e.printStackTrace();
             } catch (MalformedURLException e) {
                 e.printStackTrace();
-            } catch (IOException e) {
+            } catch (SocketTimeoutException e) {
+                try {
+
+
+                    Thread.sleep(5000);
+                    Intent i = getBaseContext().getPackageManager()
+                            .getLaunchIntentForPackage(getBaseContext().getPackageName());
+                    i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    progressDialog.dismiss();
+                    startActivity(i);
+                    e.printStackTrace();
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
+            }catch (IOException e) {
                 e.printStackTrace();
             }
             return null;

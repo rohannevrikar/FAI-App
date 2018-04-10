@@ -16,7 +16,7 @@ import java.util.ArrayList;
 
 import static tastifai.customer.Cart.total;
 import static tastifai.customer.MainActivity.cartItems;
-import static tastifai.customer.SearchRestaurantAdapter.restaurantModel;
+import static tastifai.customer.MainActivity.restaurantModel;
 
 /**
  * Created by Rohan Nevrikar on 22-03-2018.
@@ -52,16 +52,16 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.ViewHolder> {
     public void onBindViewHolder(final CartAdapter.ViewHolder holder, final int position) {
         holder.itemName.setText("(" + checkoutList.get(position).getCategory() + ") " + checkoutList.get(position).getItemName());
         holder.itemQty.setText(Integer.toString(checkoutList.get(position).getQuantity()));
-        holder.itemPrice.setText(Integer.toString(Integer.parseInt(checkoutList.get(position).getPrice()) * checkoutList.get(position).getQuantity()));
+        holder.itemPrice.setText(Integer.toString((int)Double.parseDouble(checkoutList.get(position).getPrice()) * checkoutList.get(position).getQuantity()));
 
         holder.add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 checkoutList.get(position).setQuantity(checkoutList.get(position).getQuantity() + 1);
                 holder.itemQty.setText("" + checkoutList.get(position).getQuantity());
-                holder.itemPrice.setText(Integer.toString(Integer.parseInt(checkoutList.get(position).getPrice()) * checkoutList.get(position).getQuantity()));
+                holder.itemPrice.setText(Integer.toString((int)Double.parseDouble(checkoutList.get(position).getPrice()) * checkoutList.get(position).getQuantity()));
 
-                total = total + Integer.parseInt(checkoutList.get(position).getPrice());
+                total = total + (int)Double.parseDouble(checkoutList.get(position).getPrice());
                 itemTotal.setText("" + total);
                 checkoutTotal.setText(String.valueOf(total + restaurantModel.getDeliveryCharges()));
 //                SharedPreferences.Editor editor = cartSharedPref.edit();
@@ -76,11 +76,11 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.ViewHolder> {
         holder.remove.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                total = total - Integer.parseInt(checkoutList.get(position).getPrice());
+                total = total - (int)Double.parseDouble(checkoutList.get(position).getPrice());
                 if(checkoutList.get(position).getQuantity() > 1) {
                     checkoutList.get(position).setQuantity(checkoutList.get(position).getQuantity() - 1);
                     holder.itemQty.setText("" + checkoutList.get(position));
-                    holder.itemPrice.setText(Integer.toString(Integer.parseInt(checkoutList.get(position).getPrice()) * checkoutList.get(position).getQuantity()));
+                    holder.itemPrice.setText(Integer.toString((int)Double.parseDouble(checkoutList.get(position).getPrice()) * checkoutList.get(position).getQuantity()));
                 }
                 else
                     checkoutList.remove(position);

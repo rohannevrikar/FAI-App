@@ -26,6 +26,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.Collections;
 
@@ -44,6 +45,7 @@ public class DeliveryStatus extends AppCompatActivity {
     private SharedPreferences statusPref;
     private TextView heading;
     private TextView message;
+    private TextView placedTimeTextView;
     private RelativeLayout layout;
 
     @Override
@@ -52,22 +54,26 @@ public class DeliveryStatus extends AppCompatActivity {
         setContentView(R.layout.activity_delivery_status);
         heading = findViewById(R.id.heading);
         layout = findViewById(R.id.layout);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        if (getSupportActionBar() != null){
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setDisplayShowHomeEnabled(true);
-        }
+        placedTimeTextView = findViewById(R.id.placedTime);
+
         statusPref = getApplicationContext().getSharedPreferences("StatusPref", MODE_PRIVATE);
         if(!statusPref.getString("guid","").equals("") && statusPref.getInt("userId",-1) != -1){
             String restaurantName = statusPref.getString("restaurantName", "");
             heading.setText("Your " + restaurantName + "'s Order");
+            String placedTime = statusPref.getString("placedTime","");
+            Log.d(TAG, "onCreate: placedTime: " + placedTime);
+            placedTimeTextView.setText(placedTime);
+
 
             guid = statusPref.getString("guid", "");
             userId = statusPref.getInt("userId",-1);
             Log.d(TAG, "onCreate: guid, userid: " + guid + " " + userId);
 
-
+            Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+            setSupportActionBar(toolbar);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
             placed = findViewById(R.id.placed);
             accepted = findViewById(R.id.accepted);
             accepted.setBackgroundColor(getResources().getColor(R.color.dark_grey));
@@ -190,7 +196,18 @@ public class DeliveryStatus extends AppCompatActivity {
                 e.printStackTrace();
             } catch (MalformedURLException e) {
                 e.printStackTrace();
-            } catch (IOException e) {
+            }catch (SocketTimeoutException e) {
+
+
+                    Intent i = getBaseContext().getPackageManager()
+                            .getLaunchIntentForPackage(getBaseContext().getPackageName());
+                    i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+                    startActivity(i);
+                    e.printStackTrace();
+
+            }catch (IOException e) {
+
                 e.printStackTrace();
             }
             return null;

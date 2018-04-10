@@ -16,6 +16,7 @@
         app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
 <RelativeLayout
+    android:id="@+id/toolbarLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -24,10 +25,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
+        android:maxWidth="240dp"
         android:text="HOME"
-        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
         android:textColor="#808080"
-        android:textSize="20sp"
         android:textStyle="bold" />
     <!--<TextView-->
         <!--android:id="@+id/address"-->
@@ -45,23 +45,23 @@
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
         android:layout_alignParentEnd="true"
-        android:visibility="gone"
         android:layout_alignParentRight="true"
         android:layout_marginBottom="11dp"
+        android:visibility="gone"
         android:layout_marginEnd="20dp"
         android:layout_marginRight="20dp">
 
         <ImageView
             android:id="@+id/cartImage"
-            android:layout_width="40dp"
+            android:layout_width="30dp"
             android:layout_centerInParent="true"
-            android:layout_height="40dp"
+            android:layout_height="30dp"
             android:src="@drawable/cart"/>
         <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
-            android:layout_marginTop="20dp">
+            android:layout_marginTop="15dp">
             <!--android:background="@drawable/circle_bg">-->
             <tastifai.customer.CustomTextView
                 android:layout_width="wrap_content"
@@ -76,15 +76,17 @@
 
     </RelativeLayout>
 
-    <ImageView
-        android:id="@+id/drop_down"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/cartLayout"
-        android:layout_centerVertical="true"
-        android:layout_toEndOf="@+id/title"
-        android:layout_toRightOf="@+id/title"
-        app:srcCompat="@mipmap/down" />
+    <!--<ImageView-->
+        <!--android:id="@+id/drop_down"-->
+        <!--android:layout_width="40dp"-->
+        <!--android:layout_height="40dp"-->
+        <!--android:layout_alignTop="@+id/cartLayout"-->
+        <!--android:layout_centerVertical="true"-->
+        <!--android:layout_toEndOf="@+id/title"-->
+        <!--android:layout_marginLeft="5dp"-->
+
+        <!--android:layout_toRightOf="@+id/title"-->
+        <!--app:srcCompat="@mipmap/down" />-->
 
 
 </RelativeLayout>

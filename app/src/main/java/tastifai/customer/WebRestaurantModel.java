@@ -14,6 +14,15 @@ public class WebRestaurantModel implements Comparable<WebRestaurantModel> {
     private double distance;
     private String timing;
     private int deliveryCharges;
+    private String fileName;
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
 
     public int getDeliveryCharges() {
         return deliveryCharges;

@@ -1,6 +1,7 @@
 package tastifai.customer;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -182,6 +183,13 @@ public class JourneyFragment extends Fragment {
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             } catch (IOException e) {
+//                    Toast.makeText(FacebookLoginActivity.this, "Something's wrong, please give us a minute to check", Toast.LENGTH_SHORT).show();
+                    Intent i = getActivity().getBaseContext().getPackageManager()
+                            .getLaunchIntentForPackage(getActivity().getBaseContext().getPackageName());
+                    i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    progressDialog.dismiss();
+                    startActivity(i);
+
                 e.printStackTrace();
             }
             return null;

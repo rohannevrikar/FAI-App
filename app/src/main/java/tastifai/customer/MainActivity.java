@@ -59,16 +59,17 @@ import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
 
@@ -110,12 +111,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public static Bitmap pictureBitmap;
     String id;
     public static String restaurantId;
+    public static RecommendationsPOJO mostOrderedDishesRestaurant;
+    public static RecommendationsPOJO mostFrequentDishUser;
+    public static RecommendationsPOJO mostRecentDishUser;
+    public static ArrayList<RecommendationsPOJO> recommendationsList = new ArrayList<>();
     URL fb_url = null;//small | noraml | large
 
     HttpsURLConnection conn1 = null;
     private SharedPreferences locationSharedPreferences;
     private ArrayList<Order> orderRatingList = new ArrayList<>();
     private RecyclerView orderRatingRecyclerView;
+    public static WebRestaurantModel restaurantModel;
 
     FacebookAsyncTask asyncTask = new FacebookAsyncTask(MainActivity.this);
     private String subLocality;
@@ -127,6 +133,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private double userLat;
     private double userLng;
     public static ProgressDialog progressDialog;
+    private RelativeLayout toolbarLayout;
+    public static ArrayList<MenuItemModel> mostOrderedRestaurantList = new ArrayList<>();
 
 
     @Override
@@ -136,53 +144,37 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         locationSharedPreferences = getSharedPreferences(locationPref, Context.MODE_PRIVATE);
         String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());
         toolbar = (Toolbar) findViewById(R.id.toolbar);
+        title = (TextView) toolbar.findViewById(R.id.title);
+        toolbarLayout = findViewById(R.id.toolbarLayout);
         Log.d(TAG, "onCreate: timeStamp: " + timeStamp);
         restaurantModelArrayList.clear();
         if (cartItems.size() != 0)
             cartItems.clear();
         webRestaurantList = new ArrayList<>();
-        if (locationSharedPreferences != null) {
-            subLocality = locationSharedPreferences.getString("subLocality", null);
-            address = locationSharedPreferences.getString("address", null);
-            userLat = Double.parseDouble(locationSharedPreferences.getString("latitude", ""));
-            userLng = Double.parseDouble(locationSharedPreferences.getString("longitude", ""));
 
+        if (userModel != null) {
+            subLocality = userModel.getSubLocality();
+            address = userModel.getFullAddress();
+            userLat = userModel.getLatitude();
+            userLng = userModel.getLongitude();
+            Log.d(TAG, "onCreate: userModel: " + subLocality + " " + address + " " + userLat + " " + userLng);
         }
-//        if(userModel!=null){
-//            subLocality = userModel.getSubLocality();
-//            address = userModel.getFullAddress();
-//            userLat = userModel.getLatitude();
-//            userLng = userModel.getLongitude();
-//        }
 
-        //cartSharedPref = getSharedPreferences("Cart", Context.MODE_PRIVATE);
-//        if(cartItems.size() == 0){
-//            Log.d(TAG, "onCreate: clearing cartsharedpred");
-//            cartSharedPref.edit().clear().apply();
-//        }
-//        if(cartSharedPref.getString("cart", null) != null){
-//            Gson gson = new Gson();
-//            String json = cartSharedPref.getString("cart", null);
-//            Log.d(TAG, "onCreate: cartsharedpref not null" +json);
-//
-//            Type type = new TypeToken<ArrayList<MenuItemModel>>(){}.getType();
-//            cartItems = gson.fromJson(json, type);
-//        }
-        //getApplicationContext().deleteDatabase("restaurants.db");
-        //databaseHelper = new DatabaseHelper(this);
+        progressDialog = new ProgressDialog(this);
         Log.d(TAG, "onCreate: " + UUID.randomUUID().toString());
         BottomNavigationView bottomNavigationView = (BottomNavigationView) findViewById(R.id.bottom_navigation);
         BottomNavigationViewHelper.disableShiftMode(bottomNavigationView);
 
         bottomNavigationView.setSelectedItemId(R.id.food);
         Log.d(TAG, "onCreate: " + isConnectedToInternet());
-        if (isConnectedToInternet())
-            new APIAsyncTask().execute(url);
-        else
+        if (isConnectedToInternet()) {
+            new GetAllRestaurantsAPI().execute(url);
+            new MostFrequentDishesAPI().execute("http://foodspecwebapi.us-east-1.elasticbeanstalk.com/api/FoodSpec/GetRecommendMostOrderedItemByUser/" + userModel.getUserId());
+            new MostRecentDishesAPI().execute("http://foodspecwebapi.us-east-1.elasticbeanstalk.com/api/FoodSpec/GetRecommendMostOrderedItemByDate/" + userModel.getUserId());
+        } else
             setUpAlert();
 
-        dropDown = findViewById(R.id.drop_down);
-        dropDown.setOnClickListener(new View.OnClickListener() {
+        toolbarLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, AddressActivity.class);
@@ -201,47 +193,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
             id = sharedPreferences.getString("fbUserId", null);
             Log.d(TAG, "onCreate: USer id" + id);
-            //profilePic.setProfileId(id);
         }
-        //Log.d("MainActivity", "onCreate: " + AccessToken.getCurrentAccessToken().toString());
-
-
-//        GraphRequest request = GraphRequest.newGraphPathRequest(
-//                AccessToken.getCurrentAccessToken(),
-//                "/me/friends",
-//                new GraphRequest.Callback() {
-//                    @Override
-//                    public void onCompleted(GraphResponse response) {
-//                        try {
-//                            Log.d("MainActivity", "onCompleted: " + response.toString());
-//                            friendsArray = response.getJSONObject().getJSONArray("data");
-//                            Log.d("MainActivity", "onCompleted: " + friendsArray.toString());
-//
-//                        } catch (JSONException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                });
-//        Bundle parameters = new Bundle();
-//
-//        request.executeAsync();
-        //Log.d("FriendsArray", "onCreate: " + friendsArray.toString());
-
-//        Bitmap bitmap = null;
-//        try {
-//            bitmap = BitmapFactory.decodeStream(new URL(sharedPreferences.getString("picture", null)).openConnection().getInputStream());
-//            profilePic.setImageBitmap(bitmap);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-
-        Log.d("MainActivity", "onCreate: " + sharedPreferences.getString("fbUserId", null) + " " + sharedPreferences.getString("first_name", null));
-        title = findViewById(R.id.title);
-//        if(databaseHelper.getRestaurantData().getCount() == 0){
-//        }
-//        toolbarAddress = findViewById(R.id.address);
-//        toolbarAddress.setText(address);
-        title.setText(subLocality);
+        title.setText("(" + userModel.getAddressType() + ")" + userModel.getBuildingName() + " " + userModel.getStreetName());
         title.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/GT-Walsheim.ttf"));
 
         setSupportActionBar(toolbar);
@@ -250,7 +203,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         getSupportActionBar().setDisplayShowTitleEnabled(false);
         asyncTask.delegate = (AsyncResponse) this;
         asyncTask.execute("https://graph.facebook.com/" + id + "/picture?type=large");
-        //appBarLayout = (AppBarLayout) findViewById(R.id.app_bar_layout);
 
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 MainActivity.this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -279,45 +231,38 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             }
         });
+        if (isConnectedToInternet())
 
-        bottomNavigationView.setOnNavigationItemSelectedListener(
-                new BottomNavigationView.OnNavigationItemSelectedListener() {
-                    @Override
-                    public boolean onNavigationItemSelected(@NonNull android.view.MenuItem item) {
-                        switch (item.getItemId()) {
-                            case R.id.food:
-                                Log.d("SearchRestaurantFrag", "onNavigationItemSelected: food clicked");
-//                                setupViewPager(viewPager);
-//                                findViewById(R.id.toolbar).setVisibility(View.VISIBLE);
-//                                findViewById(R.id.app_bar_layout).setVisibility(View.VISIBLE);
-                                getFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.frame_layout, new FoodFragment()).commit();
+            bottomNavigationView.setOnNavigationItemSelectedListener(
+                    new BottomNavigationView.OnNavigationItemSelectedListener() {
+                        @Override
+                        public boolean onNavigationItemSelected(@NonNull android.view.MenuItem item) {
+                            switch (item.getItemId()) {
+                                case R.id.food:
+                                    Log.d("SearchRestaurantFrag", "onNavigationItemSelected: food clicked");
+                                    getFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.frame_layout, new FoodFragment()).commit();
 
-                                break;
+                                    break;
 
-//                            case R.id.fun:
-//                                Log.d("SearchRestaurantFrag", "onNavigationItemSelected: fun clicked");
-//                                getFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.frame_layout, new FunFragment()).commit();
-//
-//                                break;
 
-                            case R.id.friends:
-                                Log.d("SearchRestaurantFrag", "onNavigationItemSelected: Friends clicked");
-                                getFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.frame_layout, new FriendsFragment()).commit();
+                                case R.id.friends:
+                                    Log.d("SearchRestaurantFrag", "onNavigationItemSelected: Friends clicked");
+                                    getFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.frame_layout, new FriendsFragment()).commit();
 
-                                break;
-                            case R.id.me:
-                                Log.d("SearchRestaurantFrag", "onNavigationItemSelected: me clicked");
-                                getFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.frame_layout, new MeFragment()).commit();
+                                    break;
+                                case R.id.me:
+                                    Log.d("SearchRestaurantFrag", "onNavigationItemSelected: me clicked");
+                                    getFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.frame_layout, new MeFragment()).commit();
 
-                                break;
+                                    break;
+
+                            }
+                            return true;
 
                         }
-                        return true;
-
-                    }
 
 
-                });
+                    });
 
     }
 
@@ -371,10 +316,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         adapter.addFragment(recommendationsFragment, "FAI");
         adapter.addFragment(nearbyRestaurantsFragment, "Near Me");
-        //adapter.addFragment(rushFragment, "Rush");
 
         viewPager.setAdapter(adapter);
-        //viewPager.setOffscreenPageLimit(3);
     }
 
     public boolean isConnectedToInternet() {
@@ -391,71 +334,30 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return false;
     }
 
-    //        public void updateViewPager() {
-//        adapter.clearList();
-//
-//
-//        f_overview = new OverviewFragment();
-//
-//
-//        f_menu = new MenuFragment();
-//
-//
-//        f_reviews = new ReviewsFragment();
-//
-//
-//        adapter.addFragment(f_overview,  "Overview");
-//        adapter.addFragment(f_menu, "Menu");
-//        adapter.addFragment(f_reviews, "Reviews");
-//
-//        viewPager.setAdapter(adapter);
-//            adapter.notifyDataSetChanged();
-//        //viewPager.setOffscreenPageLimit(3);
-//    }
+
     private void initAction() {
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
         Log.d("MainActivity", "initAction: called");
-        tabLayout.setupWithViewPager(viewPager);
         viewPager.setCurrentItem(0);
     }
 
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-//        if(item.getItemId() == R.id.logout) {
-//            if (AccessToken.getCurrentAccessToken() == null) {
-//                return true; // already logged out
-//            }
-//            this.getSharedPreferences("FacebookPref", 0).edit().clear().apply();
-//            new GraphRequest(AccessToken.getCurrentAccessToken(), "/me/permissions/", null, HttpMethod.DELETE, new GraphRequest
-//                    .Callback() {
-//                @Override
-//                public void onCompleted(GraphResponse graphResponse) {
-//
-//                    LoginManager.getInstance().logOut();
-//                    Toast.makeText(MainActivity.this, "You are successfully logged out", Toast.LENGTH_SHORT).show();
-//                    Intent intent = new Intent(MainActivity.this, FacebookLoginActivity.class);
-//                    startActivity(intent);
-//
-//                }
-//            }).executeAsync();
-//        }
+
         if (item.getItemId() == R.id.myorder) {
             Intent intent = new Intent(MainActivity.this, DeliveryStatus.class);
             startActivity(intent);
         }
         if (item.getItemId() == R.id.home) {
+            Intent intent = getIntent();
+            finish();
+            startActivity(intent);
+
 
         }
-//        } else if(item.getItemId() == R.id.myaccount){
-//            Toast.makeText(MainActivity.this, "Clicked", Toast.LENGTH_SHORT).show();
-//            findViewById(R.id.home).setVisibility(View.GONE);
-//            title.setText("My Account");
-//            findViewById(R.id.restaurantFragment).setVisibility(View.VISIBLE);
-//            getFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.restaurantFragment, new MyAccount()).commit();
 //
-//        }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
@@ -480,25 +382,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return friendsArray;
     }
 
-    //    private void findDistance(){
-//        double earthRadius = 6371;
-//
-//        double latDiff = Math.abs(convertToRadian(lat2 - lat1));
-//        Log.d(TAG, "findDistance: differece lat: " + latDiff);
-//        double lngDiff = Math.abs(convertToRadian(lng2 - lng1));
-//        Log.d(TAG, "findDistance: difference lng: " + lngDiff);
-//        double a = Math.pow(Math.sin(latDiff/2),2) + (Math.cos(convertToRadian(lat1) * Math.cos(convertToRadian(lat2) * Math.pow(Math.sin(lngDiff/2),2))));
-//        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-//        Log.d(TAG, "findDistance: c: " + c + " a : " + a + " math.tan2 : " + Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
-//        double distance = earthRadius * c;
-//        Log.d(TAG, "findDistance: " + distance);
-//    }
-//    private double convertToRadian(double degree){
-//        return degree * (Math.PI/180);
-//    }
-    public ImageView getImage() {
-        return profilePic;
-    }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -507,10 +390,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     public double findDistance(double restaurantLat, double restaurantLng, double userLat, double userLng) {
         Log.d(TAG, "findDistance: " + restaurantLat + " " + restaurantLng + " " + userLat + " " + userLng);
-//        double lat1 = 23.034393; //CIIE
-//        double lng1 = 72.532507; //CIIE
-//        double lat2 = 23.019207; //Satyam
-//        double lng2 = 72.514001; //Satyam
         double earthRadius = 6371; // miles (or 6371.0 kilometers)
         double dLat = Math.toRadians(userLat - restaurantLat);
         double dLng = Math.toRadians(userLng - restaurantLng);
@@ -532,21 +411,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             progressDialog.dismiss();
     }
 
-    public int calculateDistanceInKilometer(double userLat, double userLng,
-                                            double venueLat, double venueLng) {
-
-        double latDistance = Math.toRadians(userLat - venueLat);
-        double lngDistance = Math.toRadians(userLng - venueLng);
-
-        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
-                + Math.cos(Math.toRadians(userLat)) * Math.cos(Math.toRadians(venueLat))
-                * Math.sin(lngDistance / 2) * Math.sin(lngDistance / 2);
-
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        Log.d(TAG, "calculateDistanceInKilometer: " + (int) (Math.round(6371 * c)));
-
-        return (int) (Math.round(6371 * c));
-    }
 
     public String convertDateTime(String dateTime) {
         String start_dt = dateTime.replace("T", " ");
@@ -563,16 +427,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return formatter.format(date);
     }
 
-    private class APIAsyncTask extends AsyncTask<Object, String, String> {
+    private class GetAllRestaurantsAPI extends AsyncTask<Object, String, String> {
         StringBuilder builder = new StringBuilder();
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            progressDialog = new ProgressDialog(MainActivity.this);
-            progressDialog.setMessage("Loading...");
-            progressDialog.setCancelable(false);
-            progressDialog.show();
+            if (!MainActivity.this.isFinishing()) {
+                //progressDialog = new ProgressDialog(MainActivity.this);
+                progressDialog.setMessage("Loading...");
+                progressDialog.setCancelable(false);
+                progressDialog.show();
+            }
         }
 
         @Override
@@ -595,43 +461,38 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             model.setLatitude(Double.parseDouble(obj.getString("Latitude")));
                             model.setLongitude(Double.parseDouble(obj.getString("Longitude")));
                         }
-
-
                         restaurantModelArrayList.add(model);
-
-
-//                        databaseHelper.insertRestaurantData(Integer.parseInt(obj.getString("RestaurantID")), obj.getString("RestaurantName"));
-//                            Log.d(TAG, "onPostExecute: inserting " + i);
-//                            Toast.makeText(MainActivity.this, "data inserted", Toast.LENGTH_SHORT).show();
-
-
-//                            Toast.makeText(MainActivity.this, "data not inserted", Toast.LENGTH_SHORT).show();
-
                     }
                     for (WebRestaurantModel model : restaurantModelArrayList) {
                         model.setDistance(findDistance(model.getLatitude(), model.getLongitude(), userLat, userLng));
 
                     }
+                    Log.d(TAG, "onPostExecute: list size: " + restaurantModelArrayList.size());
+                    Iterator<WebRestaurantModel> iterator = restaurantModelArrayList.iterator();
+//                    while (iterator.hasNext()) {
+//                        WebRestaurantModel model = iterator.next();
+//                        Log.d(TAG, "onPostExecute: distance radius: " + model.getDistance());
+//
+//                        if (model.getDistance() >= 5) {
+//                            Log.d(TAG, "onPostExecute: removing: " + model.getRestaurantName());
+//                            iterator.remove();                        }
+//                    }
                     Collections.sort(restaurantModelArrayList);
-                    for (WebRestaurantModel model : restaurantModelArrayList) {
-                        Log.d(TAG, "onPostExecute: " + model.getRestaurantName() + " " + model.getDistance());
+                    for (WebRestaurantModel model : restaurantModelArrayList)
+                        new MostOrderedItemRestaurantAPI().execute("http://foodspecwebapi.us-east-1.elasticbeanstalk.com/api/FoodSpec/GetRecommendMostOrderedItemByRestaurant/" + model.getId());
 
-                    }
-
-                    getFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.frame_layout, new FoodFragment()).commitAllowingStateLoss();
-
-
+//                    new MostOrderedItemRestaurantAPI().execute("");
+//                    new MostFrequentDishesAPI().execute("");
+//                    new MostRecentDishesAPI().execute("");
                 }
 
             } catch (JSONException e) {
-
                 e.printStackTrace();
             } catch (NullPointerException e) {
                 int tracker = 0;
-
                 while (tracker == 0) {
                     Toast.makeText(MainActivity.this, "No internet connection, trying to connect...", Toast.LENGTH_SHORT).show();
-                    new APIAsyncTask().execute(url);
+                    new GetAllRestaurantsAPI().execute(url);
                     if (isConnectedToInternet())
                         tracker = 1;
                     try {
@@ -651,8 +512,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setDoInput(true);
                 connection.setRequestMethod("GET");
-                connection.setReadTimeout(7000);
-                connection.setConnectTimeout(7000);
+                //connection.setReadTimeout(7000);
+                connection.setConnectTimeout(30000);
                 InputStream istream = connection.getInputStream();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(istream));
                 String line;
@@ -674,6 +535,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 e.printStackTrace();
             } catch (MalformedURLException e) {
                 e.printStackTrace();
+            } catch (SocketTimeoutException e) {
+
+                Intent i = getBaseContext().getPackageManager()
+                        .getLaunchIntentForPackage(getBaseContext().getPackageName());
+                i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                progressDialog.dismiss();
+                startActivity(i);
+                e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -682,5 +551,354 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+    private class MostOrderedItemRestaurantAPI extends AsyncTask<Object, String, String> {
+        StringBuilder builder = new StringBuilder();
 
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            if (!MainActivity.this.isFinishing()) {
+                //progressDialog = new ProgressDialog(MainActivity.this);
+                progressDialog.setMessage("Loading...");
+                progressDialog.setCancelable(false);
+                progressDialog.show();
+            }
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            progressDialog.dismiss();
+            try {
+                mostOrderedRestaurantList.clear();
+                JSONArray array = new JSONArray(s);
+                for (int i = 0; i < 1; i++) {
+                    JSONObject object = array.getJSONObject(i);
+//                    MenuItemModel model = new MenuItemModel();
+//                    model.setItemName(object.getString("MenuItemName"));
+//                    model.setItemId(object.getString("MenuItemID"));
+//                    model.setPrice(object.getString("MenuItemPrice"));
+//                    model.setDeliveryCharges(15);
+//                    model.setCategory("");
+//                    menuItemList.add(model);
+//                    MostOrderedDishesRestaurantPOJO mostOrderedDish = new MostOrderedDishesRestaurantPOJO();
+//                    mostOrderedDish.setRestaurantName(obj);
+                    MenuItemModel menuItem = new MenuItemModel();
+                    menuItem.setRestaurantName(object.getString("RestaurantName"));
+                    menuItem.setDeliveryCharges(object.getInt("DeliveryCharges"));
+                    String item = object.getString("MenuItemName");
+                    String newString = item.substring(item.indexOf(')') + 1);
+//                    if (newString.indexOf(')') != -1) {
+//                        String newString2 = newString.substring(item.indexOf(')') + 1);
+//                        menuItem.setItemName(newString2);
+//
+//                    } else {
+                        menuItem.setItemName(newString);
+
+                   // }
+                    Log.d(TAG, "onPostExecute: substring" + newString);
+//                    StringBuilder builder = new StringBuilder(item);
+//                    int index=0;
+//                    while(builder.charAt(index) != ')'){
+//                        Log.d(TAG, "onPostExecute: " + builder.toString() + " " + builder.charAt(index));
+//                        builder.deleteCharAt(index);
+//                        index = index + 1;
+//
+//                    }
+//                    Log.d(TAG, "onPostExecute: stringbuilder: " + builder.toString());
+                    menuItem.setItemId(object.getString("MenuItemID"));
+                    menuItem.setPrice(object.getString("MenuItemPrice"));
+                    menuItem.setQuantity(1);
+                    menuItem.setCategory(object.getString("ItemCategory"));
+                    menuItem.setRestaurantId(object.getString("RestaurantID"));
+                    mostOrderedRestaurantList.add(menuItem);
+
+
+                }
+                Log.d(TAG, "onPostExecute: mostOrderedRestaurantList: " + mostOrderedRestaurantList.size());
+                getFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.frame_layout, new FoodFragment()).commitAllowingStateLoss();
+
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        protected String doInBackground(Object[] objects) {
+            try {
+                URL url = new URL((String) objects[0]);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setDoInput(true);
+                connection.setRequestMethod("GET");
+                connection.setReadTimeout(7000);
+                connection.setConnectTimeout(7000);
+                InputStream istream = connection.getInputStream();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(istream));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    Log.d(TAG, "most ordered: doInBackground: " + line);
+                    builder.append(line);
+
+
+                }
+                int responseCode = connection.getResponseCode();
+                Log.d(TAG, "Response Code: " + responseCode);
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    Log.d(TAG, "most ordered: doInBackground: " + responseCode + " " + builder.toString());
+                    String[] myArray = builder.toString().split(",");
+                    Log.d(TAG, "onPostExecute: " + myArray[0]);
+                    return builder.toString();
+                }
+            } catch (ProtocolException e) {
+                e.printStackTrace();
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+
+        }
+    }
+
+    private class MostFrequentDishesAPI extends AsyncTask<Object, String, String> {
+        StringBuilder builder = new StringBuilder();
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            if (!MainActivity.this.isFinishing()) {
+                //progressDialog = new ProgressDialog(MainActivity.this);
+                progressDialog.setMessage("Loading...");
+                progressDialog.setCancelable(false);
+                progressDialog.show();
+            }
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            progressDialog.dismiss();
+            try {
+                mostFrequentDishUser = new RecommendationsPOJO();
+                ArrayList<MenuItemModel> menuItemList = new ArrayList<>();
+                JSONArray array = new JSONArray(s);
+                if (array.length() == 0) {
+                    Toast.makeText(MainActivity.this, "You don't have order history", Toast.LENGTH_SHORT).show();
+                } else if (array.length() <= 5) {
+                    for (int i = 0; i < array.length(); i++) {
+                        JSONObject object = array.getJSONObject(i);
+                        MenuItemModel model = new MenuItemModel();
+                        String item = object.getString("MenuItemName");
+                        String newString = item.substring(item.indexOf(')') + 1);
+//                        if (newString.indexOf(')') != -1) {
+//                            String newString2 = newString.substring(item.indexOf(')') + 1);
+//                            model.setItemName(newString2);
+//
+//                        } else {
+                            model.setItemName(newString);
+
+                      //  }
+                        model.setItemId(object.getString("MenuItemID"));
+                        model.setPrice(object.getString("MenuItemPrice"));
+                        model.setRestaurantName(object.getString("RestaurantName"));
+                        model.setDeliveryCharges(object.getInt("DeliveryCharges"));
+                        model.setCategory(object.getString("ItemCategory"));
+                        model.setQuantity(1);
+                        model.setRestaurantId(object.getString("RestaurantID"));
+                        menuItemList.add(model);
+                    }
+                } else {
+                    for (int i = 0; i < array.length(); i++) {
+                        JSONObject object = array.getJSONObject(i);
+                        MenuItemModel model = new MenuItemModel();
+                        String item = object.getString("MenuItemName");
+                        String newString = item.substring(item.indexOf(')') + 1);
+//                        if (newString.indexOf(')') != -1) {
+//                            String newString2 = newString.substring(item.indexOf(')') + 1);
+//                            model.setItemName(newString2);
+//
+//                        } else {
+                            model.setItemName(newString);
+
+                      //  }
+                        model.setItemId(object.getString("MenuItemID"));
+                        model.setPrice(object.getString("MenuItemPrice"));
+                        model.setRestaurantName(object.getString("RestaurantName"));
+                        model.setDeliveryCharges(object.getInt("DeliveryCharges"));
+                        model.setQuantity(1);
+                        model.setRestaurantId(object.getString("RestaurantID"));
+                        model.setCategory(object.getString("ItemCategory"));
+                        menuItemList.add(model);
+                    }
+                }
+                mostFrequentDishUser.setRecommendationType("Your favorite dishes");
+                mostFrequentDishUser.setRecommendationItemList(menuItemList);
+            } catch (JSONException e1) {
+                e1.printStackTrace();
+            }
+
+
+        }
+
+        @Override
+        protected String doInBackground(Object[] objects) {
+            try {
+                URL url = new URL((String) objects[0]);
+                Log.d(TAG, "most frequent: doInBackground: " + url.toString());
+
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setDoInput(true);
+                connection.setRequestMethod("GET");
+                connection.setReadTimeout(7000);
+                connection.setConnectTimeout(7000);
+                InputStream istream = connection.getInputStream();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(istream));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    Log.d(TAG, " most frequently ordered: doInBackground: " + line);
+                    builder.append(line);
+
+
+                }
+                int responseCode = connection.getResponseCode();
+                Log.d(TAG, "Response Code: " + responseCode);
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    Log.d(TAG, "most frequently ordered: doInBackground: " + responseCode + " " + builder.toString());
+                    String[] myArray = builder.toString().split(",");
+                    Log.d(TAG, "onPostExecute: " + myArray[0]);
+                    return builder.toString();
+                }
+            } catch (ProtocolException e) {
+                e.printStackTrace();
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+
+        }
+    }
+
+    private class MostRecentDishesAPI extends AsyncTask<Object, String, String> {
+        StringBuilder builder = new StringBuilder();
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            if (!MainActivity.this.isFinishing()) {
+                //progressDialog = new ProgressDialog(MainActivity.this);
+                progressDialog.setMessage("Loading...");
+                progressDialog.setCancelable(false);
+                progressDialog.show();
+            }
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            recommendationsList.clear();
+            progressDialog.dismiss();
+            try {
+                mostRecentDishUser = new RecommendationsPOJO();
+                ArrayList<MenuItemModel> menuItemList = new ArrayList<>();
+                JSONArray array = new JSONArray(s);
+                if (array.length() == 0) {
+                    Toast.makeText(MainActivity.this, "You don't have order history", Toast.LENGTH_SHORT).show();
+                } else if (array.length() <= 5) {
+                    for (int i = 0; i < array.length(); i++) {
+                        JSONObject object = array.getJSONObject(i);
+                        MenuItemModel model = new MenuItemModel();
+                        String item = object.getString("MenuItemName");
+                        String newString = item.substring(item.indexOf(')') + 1);
+//                        if (newString.indexOf(')') != -1) {
+//                            String newString2 = newString.substring(item.indexOf(')') + 1);
+//                            model.setItemName(newString2);
+//
+//                        } else {
+                            model.setItemName(newString);
+
+                       // }
+                        model.setItemId(object.getString("MenuItemID"));
+                        model.setPrice(object.getString("MenuItemPrice"));
+                        model.setRestaurantName(object.getString("RestaurantName"));
+                        model.setDeliveryCharges(object.getInt("DeliveryCharges"));
+                        model.setCategory(object.getString("ItemCategory"));
+                        model.setQuantity(1);
+                        model.setRestaurantId(object.getString("RestaurantID"));
+                        menuItemList.add(model);
+                    }
+                } else {
+                    for (int i = 0; i < array.length(); i++) {
+                        JSONObject object = array.getJSONObject(i);
+                        MenuItemModel model = new MenuItemModel();
+                        String item = object.getString("MenuItemName");
+                        String newString = item.substring(item.indexOf(')') + 1);
+//                        if (newString.indexOf(')') != -1) {
+//                            String newString2 = newString.substring(item.indexOf(')') + 1);
+//                            model.setItemName(newString2);
+//
+//                        } else {
+                            model.setItemName(newString);
+
+                        //}
+                        model.setItemId(object.getString("MenuItemID"));
+                        model.setPrice(object.getString("MenuItemPrice"));
+                        model.setDeliveryCharges(object.getInt("DeliveryCharges"));
+                        model.setRestaurantName(object.getString("RestaurantName"));
+                        model.setQuantity(1);
+                        model.setRestaurantId(object.getString("RestaurantID"));
+                        model.setCategory(object.getString("ItemCategory"));
+                        menuItemList.add(model);
+                    }
+                }
+                mostRecentDishUser.setRecommendationType("Most recent dishes ");
+                mostRecentDishUser.setRecommendationItemList(menuItemList);
+
+                recommendationsList.add(mostFrequentDishUser);
+                recommendationsList.add(mostRecentDishUser);
+
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        protected String doInBackground(Object[] objects) {
+            try {
+                URL url = new URL((String) objects[0]);
+                Log.d(TAG, "most recent: doInBackground: " + url.toString());
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setDoInput(true);
+                connection.setRequestMethod("GET");
+                connection.setReadTimeout(7000);
+                connection.setConnectTimeout(7000);
+                InputStream istream = connection.getInputStream();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(istream));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    Log.d(TAG, "most recently ordered: doInBackground: " + line);
+                    builder.append(line);
+
+
+                }
+                int responseCode = connection.getResponseCode();
+                Log.d(TAG, "Response Code: " + responseCode);
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    Log.d(TAG, "most recently ordered: doInBackground: " + responseCode + " " + builder.toString());
+                    String[] myArray = builder.toString().split(",");
+                    Log.d(TAG, "onPostExecute: " + myArray[0]);
+                    return builder.toString();
+                }
+            } catch (ProtocolException e) {
+                e.printStackTrace();
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+
+        }
+    }
 }

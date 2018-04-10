@@ -20,6 +20,7 @@ public class FoodFragment extends Fragment {
     private RecommendationsFragment recommendationsFragment;
     private SearchRestaurantFragment searchRestaurantFragment;
     private RestaurantFragmentAdapter adapter;
+    private static final String TAG = "FoodFragment";
 
     private View view;
     @Nullable
@@ -34,6 +35,7 @@ public class FoodFragment extends Fragment {
 
 
     private void setupViewPager(ViewPager viewPager) {
+        Log.d(TAG, "setupViewPager: ");
         adapter = new RestaurantFragmentAdapter(((MainActivity)getActivity()).getSupportFragmentManager());
         adapter.clearList();
 

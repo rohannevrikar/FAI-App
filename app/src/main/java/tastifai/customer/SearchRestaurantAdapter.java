@@ -11,9 +11,15 @@ import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import com.squareup.picasso.Picasso;
+
 import java.util.ArrayList;
+import static tastifai.customer.MainActivity.restaurantModel;
+
 
 import static tastifai.customer.MainActivity.restaurantId;
+import static tastifai.customer.MainActivity.restaurantModelArrayList;
 
 /**
  * Created by Rohan Nevrikar on 18-02-2018.
@@ -24,7 +30,6 @@ public class SearchRestaurantAdapter extends RecyclerView.Adapter<SearchRestaura
     private Context context;
     private ArrayList<WebRestaurantModel> restaurantModelArrayList;
     private final LayoutInflater layoutInflater;
-    public static WebRestaurantModel restaurantModel;
 
     public SearchRestaurantAdapter(Context context, ArrayList<WebRestaurantModel> restaurantModelArrayList) {
         this.context = context;
@@ -42,21 +47,16 @@ public class SearchRestaurantAdapter extends RecyclerView.Adapter<SearchRestaura
     public void onBindViewHolder(ViewHolder holder, final int position) {
 
         holder.restaurantName.setText(restaurantModelArrayList.get(position).getRestaurantName());
-        //holder.cuisine.setText(restaurantModelArrayList.get(position).getCuisine());
-        holder.image.setImageResource(R.drawable.foodpic);
-        //holder.ratingValue.setText(restaurantModelArrayList.get(position).getRating());
+        Picasso.get().load("http://foodspec1-test.us-east-1.elasticbeanstalk.com/Images/" + restaurantModelArrayList.get(position).getRestaurantName() + ".jpg").into(holder.image);
+
+        //holder.image.setImageResource(R.drawable.santushti1);
         holder.timings.setText(restaurantModelArrayList.get(position).getTiming());
-        //holder.ratingBar.setRating(Float.parseFloat(restaurantModelArrayList.get(position).getRating()));
         holder.relativeLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 restaurantModel = restaurantModelArrayList.get(position);
-                //restaurantId = restaurantModel.getId();
-//                ((MainActivity)context).findViewById(R.id.frame_layout).setVisibility(View.GONE);
-//                ((MainActivity)context).findViewById(R.id.restaurantFragment).setVisibility(View.VISIBLE);
                 ((MainActivity)context).getFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.frame_layout, new MenuFragment()).commit();
 
-                //((MainActivity)context).updateViewPager();
                 notifyDataSetChanged();
             }
         });

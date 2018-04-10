@@ -39,7 +39,7 @@ public class RestaurantFragmentAdapter extends FragmentStatePagerAdapter {
 
     @Override
     public int getCount() {
-        Log.d(TAG, "getCount: " + mFragments.size());
+        //Log.d(TAG, "getCount: " + mFragments.size());
         return mFragments.size();
     }
     @Override

@@ -12,7 +12,7 @@ public class Order implements Serializable {
     private String deliveryAddress;
     private String contactNumber;
     private String dateTime;
-    private ArrayList itemList;
+    private ArrayList<Item> itemList;
     private String guid;
     private String totalPrice;
     private String restaurantName;
@@ -34,11 +34,11 @@ public class Order implements Serializable {
         this.guid = guid;
     }
 
-    public ArrayList getItemList() {
+    public ArrayList<Item> getItemList() {
         return itemList;
     }
 
-    public void setItemList(ArrayList itemList) {
+    public void setItemList(ArrayList<Item> itemList) {
         this.itemList = itemList;
     }
 

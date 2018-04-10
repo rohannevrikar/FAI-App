@@ -13,7 +13,7 @@ import android.widget.TextView;
 import android.widget.Toolbar;
 
 import static tastifai.customer.MainActivity.cartItems;
-import static tastifai.customer.SearchRestaurantAdapter.restaurantModel;
+import static tastifai.customer.MainActivity.restaurantModel;
 
 /**
  * Created by Rohan Nevrikar on 19-02-2018.
